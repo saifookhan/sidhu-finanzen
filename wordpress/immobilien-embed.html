@@ -1,0 +1,64 @@
+<!--
+  WordPress Custom HTML block for https://sidhu-finanzen.de/immobilien/
+
+  Paste everything below into the page editor (Custom HTML block).
+-->
+
+<iframe
+  id="sidhu-properties"
+  src="https://sidhu-finanzen.vercel.app/immobilien"
+  title="Aktive Immobilien"
+  style="width:100%;border:0;display:block;min-height:600px;"
+  loading="lazy"
+  referrerpolicy="strict-origin-when-cross-origin"
+></iframe>
+
+<script>
+  (function () {
+    var iframe = document.getElementById('sidhu-properties')
+    if (!iframe) return
+
+    var appOrigin = 'https://sidhu-finanzen.vercel.app'
+    var parentBasePath = '/immobilien'
+
+    function getPropertyIdFromPath() {
+      var match = window.location.pathname.match(/\/immobilien\/(\d+)\/?$/)
+      return match ? match[1] : null
+    }
+
+    function iframeSrcForPropertyId(propertyId) {
+      return propertyId
+        ? appOrigin + '/immobilien/' + propertyId
+        : appOrigin + '/immobilien'
+    }
+
+    function parentPathForPropertyId(propertyId) {
+      return propertyId
+        ? parentBasePath + '/' + propertyId + '/'
+        : parentBasePath + '/'
+    }
+
+    function syncIframeFromParentUrl() {
+      iframe.src = iframeSrcForPropertyId(getPropertyIdFromPath())
+    }
+
+    syncIframeFromParentUrl()
+
+    window.addEventListener('message', function (event) {
+      if (event.origin !== appOrigin || !event.data) return
+
+      if (event.data.type === 'sidhu-iframe-resize') {
+        var height = Number(event.data.height)
+        if (height > 0) iframe.style.height = height + 'px'
+      }
+
+      if (event.data.type === 'sidhu-iframe-navigate') {
+        var nextPath = parentPathForPropertyId(event.data.propertyId)
+        if (window.location.pathname === nextPath) return
+        window.history.pushState({ propertyId: event.data.propertyId }, '', nextPath)
+      }
+    })
+
+    window.addEventListener('popstate', syncIframeFromParentUrl)
+  })()
+</script>
