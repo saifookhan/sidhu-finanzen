@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next'
 
-const frameAncestors = process.env.ALLOWED_IFRAME_ANCESTORS ?? "'self'"
+const defaultFrameAncestors =
+  "'self' https://sidhu-finanzen.de https://www.sidhu-finanzen.de"
+
+const frameAncestors = process.env.ALLOWED_IFRAME_ANCESTORS ?? defaultFrameAncestors
 const isProduction = process.env.NODE_ENV === 'production'
 
 const scriptSrc = isProduction
