@@ -27,6 +27,20 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/embed/properties',
+        destination: '/immobilien',
+        permanent: true,
+      },
+      {
+        source: '/embed/properties/:propertyId',
+        destination: '/immobilien/:propertyId',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {

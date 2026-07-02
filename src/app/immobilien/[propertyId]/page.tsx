@@ -15,7 +15,7 @@ type DetailsPageProps = {
  *
  * @param params Dynamic route params containing property id.
  */
-const EmbedPropertyDetailsPage = async ({ params }: DetailsPageProps) => {
+const ImmobilienDetailPage = async ({ params }: DetailsPageProps) => {
   const { propertyId } = await params
   let property = null
   let relatedProperties: Property[] = []
@@ -40,7 +40,7 @@ const EmbedPropertyDetailsPage = async ({ params }: DetailsPageProps) => {
     <main className='bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
       <div className='mx-auto max-w-4xl space-y-6'>
         <Link
-          href='/embed/properties'
+          href='/immobilien'
           className='inline-flex rounded-md border border-[#24313d] px-3 py-1.5 text-sm font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
         >
           Zurück zur Liste
@@ -93,4 +93,4 @@ const EmbedPropertyDetailsPage = async ({ params }: DetailsPageProps) => {
   )
 }
 
-export default EmbedPropertyDetailsPage
+export default ImmobilienDetailPage

@@ -118,7 +118,7 @@ export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
                     {property.price.toLocaleString('de-DE')} {property.currency}
                   </strong>
                   <Link
-                    href={`/embed/properties/${property.id}`}
+                    href={`/immobilien/${property.id}`}
                     className='rounded-md border border-[#24313d] px-2.5 py-1 text-xs font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
                   >
                     Ansehen

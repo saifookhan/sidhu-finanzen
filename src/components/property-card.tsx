@@ -47,7 +47,7 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
             {property.price.toLocaleString('de-DE')} {property.currency}
           </strong>
           <Link
-            href={`/embed/properties/${property.id}`}
+            href={`/immobilien/${property.id}`}
             className='rounded-md border border-[#24313d] px-3 py-1.5 text-sm font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
           >
             Mehr erfahren

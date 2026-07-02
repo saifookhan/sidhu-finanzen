@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
  * Redirects root to the embeddable list page.
  */
 const HomePage = () => {
-  redirect('/embed/properties')
+  redirect('/immobilien')
 }
 
 export default HomePage

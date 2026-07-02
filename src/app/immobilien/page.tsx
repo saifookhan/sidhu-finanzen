@@ -13,7 +13,7 @@ type ListPageProps = {
  *
  * @param searchParams URL query values used for filtering.
  */
-const EmbedPropertiesPage = async ({ searchParams }: ListPageProps) => {
+const ImmobilienListPage = async ({ searchParams }: ListPageProps) => {
   const rawSearchParams = (await searchParams) ?? {}
   const filters = parseFilters(rawSearchParams)
   let properties: Property[] = []
@@ -31,7 +31,7 @@ const EmbedPropertiesPage = async ({ searchParams }: ListPageProps) => {
       <div className='mx-auto max-w-6xl space-y-6'>
         <header className='space-y-2'>
           <p className='text-xs font-medium uppercase tracking-[0.15em] text-[#43586c]'>
-            Immobilien-iframe im Sidhu-Stil
+            Immobilien im Sidhu-Stil
           </p>
           <h1 className='text-3xl font-extrabold md:text-4xl'>Aktive Immobilien</h1>
           <p className='text-sm text-zinc-700'>
@@ -64,4 +64,4 @@ const EmbedPropertiesPage = async ({ searchParams }: ListPageProps) => {
   )
 }
 
-export default EmbedPropertiesPage
+export default ImmobilienListPage

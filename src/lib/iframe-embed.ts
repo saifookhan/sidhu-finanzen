@@ -1,6 +1,8 @@
 export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
 export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
 
+export const IMMOBILIEN_LIST_PATH = '/immobilien'
+
 export const IFRAME_PARENT_ORIGINS = [
   'https://sidhu-finanzen.de',
   'https://www.sidhu-finanzen.de',
@@ -8,15 +10,24 @@ export const IFRAME_PARENT_ORIGINS = [
 
 export const IFRAME_HEIGHT_REPORT_DELAYS_MS = [0, 50, 150, 300, 600, 1000, 2000] as const
 
-const embedPropertyPathPattern = /^\/embed\/properties\/([^/]+)$/
+const immobilienDetailPathPattern = /^\/immobilien\/([^/]+)$/
 
 /**
- * Extracts a property id from an embed detail pathname.
+ * Builds the detail path for one property.
  *
- * @param pathname Current embed pathname.
+ * @param propertyId OnOffice property id.
  */
-export const parseEmbedPropertyId = (pathname: string): string | null => {
-  const match = pathname.match(embedPropertyPathPattern)
+export const buildImmobilienDetailPath = (propertyId: string): string => {
+  return `${IMMOBILIEN_LIST_PATH}/${propertyId}`
+}
+
+/**
+ * Extracts a property id from an immobilien detail pathname.
+ *
+ * @param pathname Current immobilien pathname.
+ */
+export const parseImmobilienPropertyId = (pathname: string): string | null => {
+  const match = pathname.match(immobilienDetailPathPattern)
   return match?.[1] ?? null
 }
 
@@ -63,15 +74,18 @@ export const postIframeHeight = (): void => {
 }
 
 /**
- * Sends the current embed path to the WordPress parent for URL syncing.
+ * Sends the current immobilien path to the WordPress parent for URL syncing.
  *
- * @param pathname Current embed pathname.
+ * @param pathname Current immobilien pathname.
  */
 export const postIframeNavigation = (pathname: string): void => {
+  const propertyId = parseImmobilienPropertyId(pathname)
+
   postToParentFrames({
     type: IFRAME_NAVIGATE_MESSAGE_TYPE,
     path: pathname,
-    propertyId: parseEmbedPropertyId(pathname),
+    propertyId,
+    url: `${window.location.origin}${pathname}`,
   })
 }
 
