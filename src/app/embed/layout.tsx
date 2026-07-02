@@ -1,4 +1,4 @@
-import { IframeResizeReporter } from '@/components/iframe-resize-reporter'
+import { IframeEmbedBridge } from '@/components/iframe-embed-bridge'
 
 type EmbedLayoutProps = {
   children: React.ReactNode
@@ -12,7 +12,7 @@ type EmbedLayoutProps = {
 const EmbedLayout = ({ children }: EmbedLayoutProps) => {
   return (
     <>
-      <IframeResizeReporter />
+      <IframeEmbedBridge />
       {children}
     </>
   )

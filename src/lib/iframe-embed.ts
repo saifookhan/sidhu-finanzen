@@ -1,0 +1,87 @@
+export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
+export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
+
+export const IFRAME_PARENT_ORIGINS = [
+  'https://sidhu-finanzen.de',
+  'https://www.sidhu-finanzen.de',
+] as const
+
+export const IFRAME_HEIGHT_REPORT_DELAYS_MS = [0, 50, 150, 300, 600, 1000, 2000] as const
+
+const embedPropertyPathPattern = /^\/embed\/properties\/([^/]+)$/
+
+/**
+ * Extracts a property id from an embed detail pathname.
+ *
+ * @param pathname Current embed pathname.
+ */
+export const parseEmbedPropertyId = (pathname: string): string | null => {
+  const match = pathname.match(embedPropertyPathPattern)
+  return match?.[1] ?? null
+}
+
+/**
+ * Returns the full document height for iframe auto-resize messaging.
+ */
+export const getIframeDocumentHeight = (): number => {
+  const root = document.documentElement
+  const body = document.body
+
+  return Math.ceil(
+    Math.max(
+      root.scrollHeight,
+      root.offsetHeight,
+      body.scrollHeight,
+      body.offsetHeight
+    )
+  )
+}
+
+/**
+ * Sends a postMessage payload to allowed WordPress parent frames.
+ *
+ * @param message Serializable iframe bridge payload.
+ */
+const postToParentFrames = (message: Record<string, unknown>): void => {
+  if (typeof window === 'undefined' || window.self === window.top) {
+    return
+  }
+
+  for (const origin of IFRAME_PARENT_ORIGINS) {
+    window.parent.postMessage(message, origin)
+  }
+}
+
+/**
+ * Sends the current document height to allowed WordPress parent frames.
+ */
+export const postIframeHeight = (): void => {
+  postToParentFrames({
+    type: IFRAME_RESIZE_MESSAGE_TYPE,
+    height: getIframeDocumentHeight(),
+  })
+}
+
+/**
+ * Sends the current embed path to the WordPress parent for URL syncing.
+ *
+ * @param pathname Current embed pathname.
+ */
+export const postIframeNavigation = (pathname: string): void => {
+  postToParentFrames({
+    type: IFRAME_NAVIGATE_MESSAGE_TYPE,
+    path: pathname,
+    propertyId: parseEmbedPropertyId(pathname),
+  })
+}
+
+/**
+ * Schedules multiple height reports to catch post-navigation layout shifts.
+ */
+export const postIframeHeightBurst = (): void => {
+  for (const delay of IFRAME_HEIGHT_REPORT_DELAYS_MS) {
+    window.setTimeout(() => {
+      postIframeHeight()
+    }, delay)
+  }
+}

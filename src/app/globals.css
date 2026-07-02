@@ -42,6 +42,12 @@ button {
   font-weight: 500;
 }
 
+html.embed-root,
+html.embed-root body {
+  height: auto;
+  min-height: 0;
+}
+
 a {
   color: inherit;
 }

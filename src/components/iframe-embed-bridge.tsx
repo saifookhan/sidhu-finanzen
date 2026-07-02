@@ -3,18 +3,37 @@
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
-import { postIframeHeight } from '@/lib/iframe-resize'
+import {
+  postIframeHeight,
+  postIframeHeightBurst,
+  postIframeNavigation,
+} from '@/lib/iframe-embed'
 
 /**
- * Reports embed page height to the WordPress parent frame via postMessage.
+ * Syncs embed navigation and document height with the WordPress parent frame.
  */
-export const IframeResizeReporter = () => {
+export const IframeEmbedBridge = () => {
   const pathname = usePathname()
+
+  useEffect(() => {
+    document.documentElement.classList.add('embed-root')
+    document.body.classList.add('embed-root')
+
+    return () => {
+      document.documentElement.classList.remove('embed-root')
+      document.body.classList.remove('embed-root')
+    }
+  }, [])
 
   useEffect(() => {
     if (window.self === window.top) {
       return
     }
+
+    window.scrollTo(0, 0)
+
+    postIframeNavigation(pathname)
+    postIframeHeightBurst()
 
     let frameId = 0
 
@@ -28,8 +47,6 @@ export const IframeResizeReporter = () => {
       })
     }
 
-    scheduleHeightReport()
-
     const resizeObserver = new ResizeObserver(scheduleHeightReport)
     resizeObserver.observe(document.documentElement)
 
@@ -40,8 +57,21 @@ export const IframeResizeReporter = () => {
       attributes: true,
     })
 
+    /**
+     * Reports height again once lazy-loaded media finishes loading.
+     *
+     * @param event Load event from an image or iframe element.
+     */
+    const handleMediaLoad = (event: Event) => {
+      const target = event.target
+      if (target instanceof HTMLImageElement || target instanceof HTMLIFrameElement) {
+        scheduleHeightReport()
+      }
+    }
+
     window.addEventListener('resize', scheduleHeightReport)
     window.addEventListener('load', scheduleHeightReport, true)
+    document.addEventListener('load', handleMediaLoad, true)
 
     return () => {
       cancelAnimationFrame(frameId)
@@ -49,6 +79,7 @@ export const IframeResizeReporter = () => {
       mutationObserver.disconnect()
       window.removeEventListener('resize', scheduleHeightReport)
       window.removeEventListener('load', scheduleHeightReport, true)
+      document.removeEventListener('load', handleMediaLoad, true)
     }
   }, [pathname])
 
