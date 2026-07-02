@@ -27,7 +27,7 @@ const EmbedPropertiesPage = async ({ searchParams }: ListPageProps) => {
   }
 
   return (
-    <main className='min-h-screen bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
+    <main className='bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
       <div className='mx-auto max-w-6xl space-y-6'>
         <header className='space-y-2'>
           <p className='text-xs font-medium uppercase tracking-[0.15em] text-[#43586c]'>

@@ -37,7 +37,7 @@ const EmbedPropertyDetailsPage = async ({ params }: DetailsPageProps) => {
   }
 
   return (
-    <main className='min-h-screen bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
+    <main className='bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
       <div className='mx-auto max-w-4xl space-y-6'>
         <Link
           href='/embed/properties'
