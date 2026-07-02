@@ -33,7 +33,7 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
       </div>
 
       <div className='space-y-2 p-4'>
-        <h2 className='line-clamp-1 text-lg font-semibold text-[#14202c]'>
+        <h2 className='line-clamp-1 text-lg font-bold text-[#14202c]'>
           {property.title}
         </h2>
         <p className='text-sm text-zinc-700'>
@@ -48,7 +48,7 @@ export const PropertyCard = ({ property }: PropertyCardProps) => {
           </strong>
           <Link
             href={`/embed/properties/${property.id}`}
-            className='rounded-md border border-[#24313d] px-3 py-1.5 text-sm font-semibold text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
+            className='rounded-md border border-[#24313d] px-3 py-1.5 text-sm font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
           >
             Mehr erfahren
           </Link>

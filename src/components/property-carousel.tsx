@@ -44,7 +44,7 @@ export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
     <section className='space-y-4 border-t border-black/10 pt-6'>
       <div className='flex items-end justify-between gap-4'>
         <div className='space-y-1'>
-          <h2 className='text-lg font-semibold text-[#14202c]'>Weitere Immobilien</h2>
+          <h2 className='text-lg font-bold text-[#14202c]'>Weitere Immobilien</h2>
           <p className='text-sm text-zinc-600'>Entdecke weitere aktive Angebote</p>
         </div>
 
@@ -104,7 +104,7 @@ export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
               </div>
 
               <div className='space-y-2 p-4'>
-                <h3 className='line-clamp-2 min-h-[2.5rem] text-base font-semibold text-[#14202c]'>
+                <h3 className='line-clamp-2 min-h-[2.5rem] text-base font-bold text-[#14202c]'>
                   {property.title || 'Immobilie'}
                 </h3>
                 <p className='text-xs text-zinc-700'>
@@ -119,7 +119,7 @@ export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
                   </strong>
                   <Link
                     href={`/embed/properties/${property.id}`}
-                    className='rounded-md border border-[#24313d] px-2.5 py-1 text-xs font-semibold text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
+                    className='rounded-md border border-[#24313d] px-2.5 py-1 text-xs font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
                   >
                     Ansehen
                   </Link>

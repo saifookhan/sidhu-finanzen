@@ -30,10 +30,10 @@ const EmbedPropertiesPage = async ({ searchParams }: ListPageProps) => {
     <main className='min-h-screen bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
       <div className='mx-auto max-w-6xl space-y-6'>
         <header className='space-y-2'>
-          <p className='text-xs font-semibold uppercase tracking-[0.15em] text-[#43586c]'>
+          <p className='text-xs font-medium uppercase tracking-[0.15em] text-[#43586c]'>
             Immobilien-iframe im Sidhu-Stil
           </p>
-          <h1 className='text-3xl font-semibold md:text-4xl'>Aktive Immobilien</h1>
+          <h1 className='text-3xl font-extrabold md:text-4xl'>Aktive Immobilien</h1>
           <p className='text-sm text-zinc-700'>
             Strukturierte Listenansicht zur Einbettung als Mikro-Frontend.
           </p>

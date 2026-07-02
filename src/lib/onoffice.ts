@@ -3,7 +3,7 @@ import 'server-only'
 import crypto from 'node:crypto'
 
 import { getEnv } from '@/lib/env'
-import type { Property, PropertyFilters } from '@/types/property'
+import type { Property, PropertyFilters, PropertyImage } from '@/types/property'
 
 type OnOfficeFilterCondition = {
   op: string
@@ -187,6 +187,7 @@ const mapOnOfficeProperty = (record: OnOfficePropertyRecord): Property => {
     rooms: toNumber(roomsValue, 0),
     bedrooms: toNumber(bedroomsValue, 0),
     imageUrl: typeof imageValue === 'string' ? imageValue : null,
+    images: [],
     description: toString(descriptionValue, ''),
     status,
   }
@@ -213,47 +214,87 @@ const flattenEstateRecord = (record: OnOfficeEstateRecord): OnOfficePropertyReco
 }
 
 /**
- * Tries to read one URL string from a picture record.
+ * Normalizes estate picture elements into a flat array of records.
  *
  * @param elements Raw elements payload from estatepictures records.
  */
-const getPictureUrlFromElements = (elements: unknown): string | null => {
+const normalizePictureElements = (elements: unknown): OnOfficePropertyRecord[] => {
   if (Array.isArray(elements)) {
-    for (const entry of elements) {
-      if (isPropertyRecord(entry) && typeof entry.url === 'string') {
-        return entry.url
-      }
-    }
-    return null
+    return elements.filter((entry): entry is OnOfficePropertyRecord => isPropertyRecord(entry))
   }
 
-  if (isPropertyRecord(elements) && typeof elements.url === 'string') {
-    return elements.url
+  if (isPropertyRecord(elements)) {
+    return [elements]
   }
 
-  return null
+  return []
 }
 
 /**
- * Tries to read an estate id from a picture record.
+ * Maps one raw picture element to the app image shape.
  *
- * @param elements Raw elements payload from estatepictures records.
+ * @param entry Raw picture element from OnOffice.
  */
-const getEstateIdFromElements = (elements: unknown): string | null => {
-  if (Array.isArray(elements)) {
-    for (const entry of elements) {
-      if (isPropertyRecord(entry) && entry.estateid !== undefined) {
-        return toString(entry.estateid, '')
-      }
-    }
+const mapPictureElement = (entry: OnOfficePropertyRecord): PropertyImage | null => {
+  const url = typeof entry.url === 'string' ? entry.url : null
+  if (!url) {
     return null
   }
 
-  if (isPropertyRecord(elements) && elements.estateid !== undefined) {
-    return toString(elements.estateid, '')
+  return {
+    url,
+    title: toString(entry.title ?? entry.titel, ''),
+    type: toString(entry.type, 'Foto'),
+  }
+}
+
+/**
+ * Sorts images with title images first, then photos.
+ *
+ * @param images Unsorted property images.
+ */
+const sortPropertyImages = (images: PropertyImage[]): PropertyImage[] => {
+  return [...images].sort((left, right) => {
+    const leftPriority = left.type === 'Titelbild' ? 0 : 1
+    const rightPriority = right.type === 'Titelbild' ? 0 : 1
+    return leftPriority - rightPriority
+  })
+}
+
+/**
+ * Parses estate picture records into a map of estate id to images.
+ *
+ * @param records Picture records from the OnOffice API.
+ */
+const parseEstatePictureRecords = (
+  records: OnOfficeEstatePictureRecord[]
+): Map<string, PropertyImage[]> => {
+  const imageMap = new Map<string, PropertyImage[]>()
+
+  for (const record of records) {
+    for (const element of normalizePictureElements(record.elements)) {
+      const estateId = toString(element.estateid, '')
+      const image = mapPictureElement(element)
+
+      if (!estateId || !image) {
+        continue
+      }
+
+      const existing = imageMap.get(estateId) ?? []
+      const isDuplicate = existing.some((entry) => entry.url === image.url)
+
+      if (!isDuplicate) {
+        existing.push(image)
+        imageMap.set(estateId, existing)
+      }
+    }
   }
 
-  return null
+  for (const [estateId, images] of imageMap) {
+    imageMap.set(estateId, sortPropertyImages(images))
+  }
+
+  return imageMap
 }
 
 /**
@@ -428,36 +469,44 @@ const fetchOnOffice = async (action: OnOfficeActionPayload): Promise<OnOfficeAct
  *
  * @param estateIds Estate ids from read action.
  */
-const getEstateImageMap = async (estateIds: string[]): Promise<Map<string, string>> => {
+const getEstateImagesMap = async (
+  estateIds: string[]
+): Promise<Map<string, PropertyImage[]>> => {
   if (estateIds.length === 0) {
-    return new Map<string, string>()
+    return new Map<string, PropertyImage[]>()
   }
 
   try {
     const picturesAction = buildEstatePicturesAction(estateIds)
     const picturesResult = await fetchOnOffice(picturesAction)
     const records = picturesResult.data?.records as OnOfficeEstatePictureRecord[] | undefined
-    const imageMap = new Map<string, string>()
 
     if (!Array.isArray(records)) {
-      return imageMap
+      return new Map<string, PropertyImage[]>()
     }
 
-    for (const record of records) {
-      const estateId = getEstateIdFromElements(record.elements)
-      const imageUrl = getPictureUrlFromElements(record.elements)
-
-      if (!estateId || !imageUrl || imageMap.has(estateId)) {
-        continue
-      }
-
-      imageMap.set(estateId, imageUrl)
-    }
-
-    return imageMap
+    return parseEstatePictureRecords(records)
   } catch (error) {
     console.warn('Failed to load estate images', error)
-    return new Map<string, string>()
+    return new Map<string, PropertyImage[]>()
+  }
+}
+
+/**
+ * Applies loaded images to one property record.
+ *
+ * @param property Property without image list populated.
+ * @param imagesMap Estate id to images map from OnOffice.
+ */
+const attachPropertyImages = (
+  property: Property,
+  imagesMap: Map<string, PropertyImage[]>
+): Property => {
+  const images = imagesMap.get(property.id) ?? []
+  return {
+    ...property,
+    images,
+    imageUrl: images[0]?.url ?? property.imageUrl,
   }
 }
 
@@ -494,13 +543,8 @@ export const getActiveProperties = async (
     .map((entry) => mapOnOfficeProperty(entry))
     .filter((entry) => entry.status === 'active')
 
-  const imageMap = await getEstateImageMap(properties.map((property) => property.id))
-  return properties.map((property) => {
-    return {
-      ...property,
-      imageUrl: imageMap.get(property.id) ?? property.imageUrl,
-    }
-  })
+  const imagesMap = await getEstateImagesMap(properties.map((property) => property.id))
+  return properties.map((property) => attachPropertyImages(property, imagesMap))
 }
 
 /**
@@ -540,9 +584,6 @@ export const getPropertyById = async (
     return null
   }
 
-  const imageMap = await getEstateImageMap([property.id])
-  return {
-    ...property,
-    imageUrl: imageMap.get(property.id) ?? property.imageUrl,
-  }
+  const imagesMap = await getEstateImagesMap([property.id])
+  return attachPropertyImages(property, imagesMap)
 }

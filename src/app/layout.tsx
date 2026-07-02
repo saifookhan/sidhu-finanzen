@@ -1,15 +1,11 @@
 import type { Metadata } from 'next'
-import { Lora, Inter } from 'next/font/google'
+import { Manrope } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({
-  variable: '--font-inter',
+const manrope = Manrope({
+  variable: '--font-manrope',
   subsets: ['latin'],
-})
-
-const lora = Lora({
-  variable: '--font-lora',
-  subsets: ['latin'],
+  weight: ['400', '500', '700', '800'],
 })
 
 export const metadata: Metadata = {
@@ -29,7 +25,7 @@ export default function RootLayout({
   return (
     <html
       lang='de'
-      className={`${inter.variable} ${lora.variable} h-full antialiased`}
+      className={`${manrope.variable} h-full antialiased`}
     >
       <body className='flex min-h-full flex-col'>{children}</body>
     </html>

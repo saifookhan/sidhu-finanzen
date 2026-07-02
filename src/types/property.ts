@@ -1,4 +1,13 @@
 /**
+ * One image attached to a property listing.
+ */
+export type PropertyImage = {
+  url: string
+  title: string
+  type: string
+}
+
+/**
  * UI-level property shape used by list and detail pages.
  */
 export type Property = {
@@ -13,6 +22,7 @@ export type Property = {
   rooms: number
   bedrooms: number
   imageUrl: string | null
+  images: PropertyImage[]
   description: string
   status: 'active' | 'inactive' | 'unknown'
 }

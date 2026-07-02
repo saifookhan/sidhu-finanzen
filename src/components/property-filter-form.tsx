@@ -63,7 +63,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
         />
         <button
           type='submit'
-          className='rounded-md bg-[#24313d] px-4 text-sm font-semibold text-white transition hover:bg-[#1b252f]'
+          className='rounded-md bg-[#24313d] px-4 text-sm font-medium text-white transition hover:bg-[#1b252f]'
         >
           Anwenden
         </button>
