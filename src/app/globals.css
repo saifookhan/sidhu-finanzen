@@ -44,8 +44,12 @@ button {
 
 html.embed-root,
 html.embed-root body {
-  height: auto;
-  min-height: 0;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+html.embed-root body {
+  display: block !important;
 }
 
 a {

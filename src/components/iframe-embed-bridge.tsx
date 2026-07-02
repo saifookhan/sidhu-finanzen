@@ -47,8 +47,14 @@ export const IframeEmbedBridge = () => {
       })
     }
 
+    const mainElement = document.querySelector('main')
+
     const resizeObserver = new ResizeObserver(scheduleHeightReport)
-    resizeObserver.observe(document.documentElement)
+    if (mainElement instanceof HTMLElement) {
+      resizeObserver.observe(mainElement)
+    } else {
+      resizeObserver.observe(document.body)
+    }
 
     const mutationObserver = new MutationObserver(scheduleHeightReport)
     mutationObserver.observe(document.body, {

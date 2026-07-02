@@ -32,20 +32,18 @@ export const parseImmobilienPropertyId = (pathname: string): string | null => {
 }
 
 /**
- * Returns the full document height for iframe auto-resize messaging.
+ * Returns the visible content height for iframe auto-resize messaging.
  */
 export const getIframeDocumentHeight = (): number => {
-  const root = document.documentElement
-  const body = document.body
+  const main = document.querySelector('main')
 
-  return Math.ceil(
-    Math.max(
-      root.scrollHeight,
-      root.offsetHeight,
-      body.scrollHeight,
-      body.offsetHeight
-    )
-  )
+  if (main instanceof HTMLElement) {
+    const styles = window.getComputedStyle(main)
+    const marginBottom = Number.parseFloat(styles.marginBottom) || 0
+    return Math.ceil(main.offsetTop + main.offsetHeight + marginBottom)
+  }
+
+  return Math.ceil(document.documentElement.scrollHeight)
 }
 
 /**
