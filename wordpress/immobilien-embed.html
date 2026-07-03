@@ -1,6 +1,10 @@
 <!--
   WordPress Custom HTML block for https://sidhu-finanzen.de/immobilien/
 
+  Shareable detail URLs use a query param (works without WordPress rewrite rules):
+  - List:   https://sidhu-finanzen.de/immobilien/
+  - Detail: https://sidhu-finanzen.de/immobilien/?immobilie=33
+
   Paste everything below into the page editor (Custom HTML block).
 -->
 
@@ -20,11 +24,7 @@
 
     var appOrigin = 'https://sidhu-finanzen.vercel.app'
     var parentBasePath = '/immobilien'
-
-    function getPropertyIdFromPath() {
-      var match = window.location.pathname.match(/\/immobilien\/(\d+)\/?$/)
-      return match ? match[1] : null
-    }
+    var propertyQueryKey = 'immobilie'
 
     function iframeSrcForPropertyId(propertyId) {
       return propertyId
@@ -32,14 +32,42 @@
         : appOrigin + '/immobilien'
     }
 
-    function parentPathForPropertyId(propertyId) {
-      return propertyId
-        ? parentBasePath + '/' + propertyId + '/'
-        : parentBasePath + '/'
+    function getPropertyIdFromUrl() {
+      var url = new URL(window.location.href)
+      var fromQuery = url.searchParams.get(propertyQueryKey)
+      if (fromQuery) return fromQuery
+
+      var legacyMatch = url.pathname.match(/\/immobilien\/(\d+)\/?$/)
+      return legacyMatch ? legacyMatch[1] : null
+    }
+
+    function parentUrlForPropertyId(propertyId) {
+      var url = new URL(window.location.href)
+      url.pathname = parentBasePath + '/'
+
+      if (propertyId) {
+        url.searchParams.set(propertyQueryKey, propertyId)
+      } else {
+        url.searchParams.delete(propertyQueryKey)
+      }
+
+      return url.pathname + url.search
+    }
+
+    function normalizeLegacyPathUrl() {
+      var url = new URL(window.location.href)
+      var legacyMatch = url.pathname.match(/\/immobilien\/(\d+)\/?$/)
+
+      if (!legacyMatch) return
+
+      url.pathname = parentBasePath + '/'
+      url.searchParams.set(propertyQueryKey, legacyMatch[1])
+      window.history.replaceState({ propertyId: legacyMatch[1] }, '', url.pathname + url.search)
     }
 
     function syncIframeFromParentUrl() {
-      iframe.src = iframeSrcForPropertyId(getPropertyIdFromPath())
+      normalizeLegacyPathUrl()
+      iframe.src = iframeSrcForPropertyId(getPropertyIdFromUrl())
     }
 
     syncIframeFromParentUrl()
@@ -53,9 +81,10 @@
       }
 
       if (event.data.type === 'sidhu-iframe-navigate') {
-        var nextPath = parentPathForPropertyId(event.data.propertyId)
-        if (window.location.pathname === nextPath) return
-        window.history.pushState({ propertyId: event.data.propertyId }, '', nextPath)
+        var nextUrl = parentUrlForPropertyId(event.data.propertyId)
+        var currentUrl = window.location.pathname + window.location.search
+        if (currentUrl === nextUrl) return
+        window.history.pushState({ propertyId: event.data.propertyId }, '', nextUrl)
       }
     })
 
