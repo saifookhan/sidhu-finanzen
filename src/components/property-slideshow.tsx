@@ -5,6 +5,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
+import { PropertyLightbox } from '@/components/property-lightbox'
 import type { PropertyImage } from '@/types/property'
 
 const AUTO_SLIDE_DELAY_MS = 3500
@@ -129,11 +130,9 @@ export const PropertySlideshow = ({
       }
     }
 
-    document.body.style.overflow = 'hidden'
     document.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = ''
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [closeLightbox, goToOffset, isLightboxOpen])
@@ -221,13 +220,7 @@ export const PropertySlideshow = ({
       </section>
 
       {isLightboxOpen ? (
-        <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4'
-          role='dialog'
-          aria-modal='true'
-          aria-label='Bildergalerie Vollbild'
-          onClick={closeLightbox}
-        >
+        <PropertyLightbox isOpen={isLightboxOpen} onClose={closeLightbox}>
           <button
             type='button'
             aria-label='Galerie schließen'
@@ -265,20 +258,20 @@ export const PropertySlideshow = ({
           ) : null}
 
           <div
-            className='flex max-h-[90vh] max-w-5xl flex-col items-center gap-3'
+            className='flex max-h-[90dvh] max-w-5xl flex-col items-center gap-3'
             onClick={(event) => event.stopPropagation()}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={activeImage.url}
               alt={activeImage.title || propertyTitle}
-              className='max-h-[80vh] w-auto max-w-full rounded-lg object-contain'
+              className='max-h-[80dvh] w-auto max-w-full rounded-lg object-contain'
             />
             <p className='text-sm text-white/80'>
               {activeImage.title || propertyTitle} · {activeIndex + 1} / {totalImages}
             </p>
           </div>
-        </div>
+        </PropertyLightbox>
       ) : null}
     </>
   )

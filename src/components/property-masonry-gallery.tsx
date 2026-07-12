@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 
+import { PropertyLightbox } from '@/components/property-lightbox'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
@@ -87,11 +88,9 @@ export const PropertyMasonryGallery = ({
       }
     }
 
-    document.body.style.overflow = 'hidden'
     document.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = ''
       document.removeEventListener('keydown', handleKeyDown)
     }
   }, [activeIndex, closeLightbox, goToOffset])
@@ -146,12 +145,9 @@ export const PropertyMasonryGallery = ({
       </section>
 
       {activeImage && activeIndex !== null ? (
-        <div
-          className='fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4'
-          role='dialog'
-          aria-modal='true'
-          aria-label='Bildergalerie Vollbild'
-          onClick={closeLightbox}
+        <PropertyLightbox
+          isOpen={activeIndex !== null}
+          onClose={closeLightbox}
         >
           <button
             type='button'
@@ -190,20 +186,20 @@ export const PropertyMasonryGallery = ({
           ) : null}
 
           <div
-            className='flex max-h-[90vh] max-w-5xl flex-col items-center gap-3'
+            className='flex max-h-[90dvh] max-w-5xl flex-col items-center gap-3'
             onClick={(event) => event.stopPropagation()}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={activeImage.url}
               alt={activeImage.title || propertyTitle}
-              className='max-h-[80vh] w-auto max-w-full rounded-lg object-contain'
+              className='max-h-[80dvh] w-auto max-w-full rounded-lg object-contain'
             />
             <p className='text-sm text-white/80'>
               {activeImage.title || propertyTitle} · {activeIndex + 1} / {totalImages}
             </p>
           </div>
-        </div>
+        </PropertyLightbox>
       ) : null}
     </>
   )
