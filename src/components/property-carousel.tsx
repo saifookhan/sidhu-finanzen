@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { useCallback, useRef } from 'react'
 
-import { buildListingDetailPath, type ListingSegment } from '@/lib/listing'
+import { PropertyListingTile } from '@/components/property-listing-tile'
+import { type ListingSegment } from '@/lib/listing'
 import { cn } from '@/lib/utils'
 import type { Property } from '@/types/property'
 
@@ -49,7 +49,7 @@ export const PropertyCarousel = ({
     <section className='space-y-4 border-t border-black/10 pt-6'>
       <div className='flex items-end justify-between gap-4'>
         <div className='space-y-1'>
-          <h2 className='text-lg font-bold text-[#14202c]'>Weitere Immobilien</h2>
+          <h2 className='text-lg font-bold text-[#18181b]'>Weitere Immobilien</h2>
           <p className='text-sm text-zinc-600'>Entdecke weitere aktive Angebote</p>
         </div>
 
@@ -59,8 +59,8 @@ export const PropertyCarousel = ({
             aria-label='Vorherige Immobilie'
             onClick={() => scrollByCard('prev')}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-full border border-[#24313d]',
-              'text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
+              'flex h-9 w-9 items-center justify-center rounded-full border border-[#52525b]',
+              'text-[#52525b] transition hover:bg-[#52525b] hover:text-white'
             )}
           >
             ←
@@ -70,8 +70,8 @@ export const PropertyCarousel = ({
             aria-label='Naechste Immobilie'
             onClick={() => scrollByCard('next')}
             className={cn(
-              'flex h-9 w-9 items-center justify-center rounded-full border border-[#24313d]',
-              'text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
+              'flex h-9 w-9 items-center justify-center rounded-full border border-[#52525b]',
+              'text-[#52525b] transition hover:bg-[#52525b] hover:text-white'
             )}
           >
             →
@@ -88,49 +88,11 @@ export const PropertyCarousel = ({
       >
         {properties.map((property) => {
           return (
-            <article
+            <PropertyListingTile
               key={property.id}
-              className={cn(
-                'w-[min(100%,280px)] shrink-0 snap-start overflow-hidden rounded-xl',
-                'border border-black/10 bg-white shadow-[0_6px_20px_rgba(0,0,0,0.08)]',
-                'transition hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(0,0,0,0.12)]'
-              )}
-            >
-              <div className='h-36 w-full bg-gradient-to-r from-[#dde3ea] to-[#f0f3f6]'>
-                {property.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={property.imageUrl}
-                    alt={property.title || 'Immobilie'}
-                    className='h-full w-full object-cover'
-                    loading='lazy'
-                  />
-                ) : null}
-              </div>
-
-              <div className='space-y-2 p-4'>
-                <h3 className='line-clamp-2 min-h-[2.5rem] text-base font-bold text-[#14202c]'>
-                  {property.title || 'Immobilie'}
-                </h3>
-                <p className='text-xs text-zinc-700'>
-                  {property.zipCode} {property.city}
-                </p>
-                <p className='text-xs text-zinc-700'>
-                  {property.areaSqm} m2 · {property.rooms} Zimmer
-                </p>
-                <div className='flex items-center justify-between pt-1'>
-                  <strong className='text-sm text-[#0d1a27]'>
-                    {property.price.toLocaleString('de-DE')} {property.currency}
-                  </strong>
-                  <Link
-                    href={buildListingDetailPath(listingSegment, property.id)}
-                    className='rounded-md border border-[#24313d] px-2.5 py-1 text-xs font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
-                  >
-                    Ansehen
-                  </Link>
-                </div>
-              </div>
-            </article>
+              property={{ ...property, listingSegment }}
+              className='w-[min(100%,320px)] shrink-0 snap-start'
+            />
           )
         })}
       </div>

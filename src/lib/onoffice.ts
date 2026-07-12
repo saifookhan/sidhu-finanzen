@@ -2,13 +2,20 @@ import 'server-only'
 
 import crypto from 'node:crypto'
 
+import { getLocationOrtSearch } from '@/lib/filter-options'
 import { getEnv } from '@/lib/env'
 import {
   toListingSegment,
   toOnOfficeMarketingType,
   type ListingSegment,
 } from '@/lib/listing'
-import type { Property, PropertyFilters, PropertyImage } from '@/types/property'
+import type {
+  Property,
+  PropertyAmenity,
+  PropertyCoordinates,
+  PropertyFilters,
+  PropertyImage,
+} from '@/types/property'
 
 type OnOfficeFilterCondition = {
   op: string
@@ -88,6 +95,32 @@ const ONOFFICE_FIELDS = [
   'status',
   'lage',
   'land',
+]
+
+const ONOFFICE_DETAIL_FIELDS = [
+  ...ONOFFICE_FIELDS,
+  'ausstatt_beschr',
+  'sonstige_angaben',
+  'grundstuecksflaeche',
+  'anzahl_badezimmer',
+  'anzahl_terrassen',
+  'anzahl_stellplaetze',
+  'baujahr',
+  'zustand',
+  'objekttyp',
+  'objektart',
+  'nutzungsart',
+  'aussen_courtage',
+  'verfuegbar_ab',
+  'breitengrad',
+  'laengengrad',
+  'energieausweistyp',
+  'energieausweis_gueltig_bis',
+  'energieverbrauchkennwert',
+  'stellplatz',
+  'kamin',
+  'keller',
+  'gaeste_wc',
 ]
 const ONOFFICE_FALLBACK_FIELDS = [
   'Id',
@@ -171,6 +204,71 @@ const toString = (value: unknown, fallback = ''): string => {
 }
 
 /**
+ * Coerces API values to a displayable yes/no label.
+ *
+ * @param value Incoming API value.
+ */
+const toYesNoLabel = (value: unknown): string => {
+  if (value === true || value === 1 || value === '1' || value === 'true') {
+    return 'Ja'
+  }
+
+  if (value === false || value === 0 || value === '0' || value === 'false') {
+    return 'Nein'
+  }
+
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value.trim()
+  }
+
+  return ''
+}
+
+/**
+ * Parses OnOffice coordinates from latitude and longitude fields.
+ *
+ * @param record Flat estate record from OnOffice.
+ */
+const parsePropertyCoordinates = (
+  record: OnOfficePropertyRecord
+): PropertyCoordinates | null => {
+  const latitude = toNumber(pickValue(record, ['breitengrad']), Number.NaN)
+  const longitude = toNumber(pickValue(record, ['laengengrad']), Number.NaN)
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null
+  }
+
+  if (latitude === 0 && longitude === 0) {
+    return null
+  }
+
+  return { latitude, longitude }
+}
+
+/**
+ * Builds amenity rows from known OnOffice boolean fields.
+ *
+ * @param record Flat estate record from OnOffice.
+ */
+const buildPropertyAmenities = (record: OnOfficePropertyRecord): PropertyAmenity[] => {
+  const amenityFields: Array<{ label: string; keys: string[] }> = [
+    { label: 'Stellplatz', keys: ['stellplatz', 'anzahl_stellplaetze'] },
+    { label: 'Kamin', keys: ['kamin'] },
+    { label: 'Keller', keys: ['keller'] },
+    { label: 'Gäste WC', keys: ['gaeste_wc'] },
+  ]
+
+  return amenityFields
+    .map((entry) => {
+      const rawValue = pickValue(record, entry.keys)
+      const value = toYesNoLabel(rawValue)
+      return value ? { label: entry.label, value } : null
+    })
+    .filter((entry): entry is PropertyAmenity => entry !== null)
+}
+
+/**
  * Resolves the price field used for one listing segment.
  *
  * @param listingSegment Public listing segment from the route.
@@ -201,10 +299,31 @@ const mapOnOfficeProperty = (record: OnOfficePropertyRecord): Property => {
   const roomsValue = pickValue(record, ['anzahl_zimmer', 'rooms'])
   const bedroomsValue = pickValue(record, ['anzahl_schlafzimmer', 'bedrooms'])
   const descriptionValue = pickValue(record, ['objektbeschreibung', 'description'])
+  const locationDescriptionValue = pickValue(record, ['lage'])
+  const equipmentDescriptionValue = pickValue(record, ['ausstatt_beschr'])
+  const additionalDescriptionValue = pickValue(record, ['sonstige_angaben'])
+  const countryValue = pickValue(record, ['land'])
+  const plotAreaValue = pickValue(record, ['grundstuecksflaeche'])
+  const bathroomsValue = pickValue(record, ['anzahl_badezimmer'])
+  const terracesValue = pickValue(record, ['anzahl_terrassen'])
+  const parkingSpacesValue = pickValue(record, ['anzahl_stellplaetze'])
+  const yearBuiltValue = pickValue(record, ['baujahr'])
+  const conditionValue = pickValue(record, ['zustand'])
+  const objectTypeValue = pickValue(record, ['objekttyp'])
+  const objectCategoryValue = pickValue(record, ['objektart'])
+  const usageTypeValue = pickValue(record, ['nutzungsart'])
+  const buyerCommissionValue = pickValue(record, ['aussen_courtage'])
+  const availabilityValue = pickValue(record, ['verfuegbar_ab'])
+  const energyCertificateTypeValue = pickValue(record, ['energieausweistyp'])
+  const energyCertificateValidUntilValue = pickValue(record, [
+    'energieausweis_gueltig_bis',
+  ])
+  const energyConsumptionValue = pickValue(record, ['energieverbrauchkennwert'])
   const imageValue = pickValue(record, ['titelbild', 'imageUrl'])
   const listingSegment =
     toListingSegment(toString(marketingTypeValue, '')) ?? 'kaufen'
   const priceValue = listingSegment === 'mieten' ? rentPriceValue : purchasePriceValue
+  const parsedYearBuilt = toNumber(yearBuiltValue, Number.NaN)
 
   return {
     id: toString(idValue, ''),
@@ -212,16 +331,36 @@ const mapOnOfficeProperty = (record: OnOfficePropertyRecord): Property => {
     city: toString(cityValue, ''),
     zipCode: toString(zipValue, ''),
     address: toString(addressValue, ''),
+    country: toString(countryValue, 'DEU'),
     price: toNumber(priceValue, 0),
     currency: 'EUR',
     areaSqm: toNumber(areaValue, 0),
+    plotAreaSqm: toNumber(plotAreaValue, 0),
     rooms: toNumber(roomsValue, 0),
     bedrooms: toNumber(bedroomsValue, 0),
+    bathrooms: toNumber(bathroomsValue, 0),
+    terraces: toNumber(terracesValue, 0),
+    parkingSpaces: toNumber(parkingSpacesValue, 0),
+    yearBuilt: Number.isFinite(parsedYearBuilt) ? parsedYearBuilt : null,
+    condition: toString(conditionValue, ''),
+    objectType: toString(objectTypeValue, ''),
+    objectCategory: toString(objectCategoryValue, ''),
+    usageType: toString(usageTypeValue, ''),
+    buyerCommission: toString(buyerCommissionValue, ''),
+    availability: toString(availabilityValue, 'Verfügbar'),
+    energyCertificateType: toString(energyCertificateTypeValue, ''),
+    energyCertificateValidUntil: toString(energyCertificateValidUntilValue, ''),
+    energyConsumption: toString(energyConsumptionValue, ''),
     imageUrl: typeof imageValue === 'string' ? imageValue : null,
     images: [],
     description: toString(descriptionValue, ''),
+    locationDescription: toString(locationDescriptionValue, ''),
+    equipmentDescription: toString(equipmentDescriptionValue, ''),
+    additionalDescription: toString(additionalDescriptionValue, ''),
+    amenities: buildPropertyAmenities(record),
     status,
     listingSegment,
+    coordinates: parsePropertyCoordinates(record),
   }
 }
 
@@ -363,8 +502,17 @@ const buildEstateFilters = (
 
   const priceField = getPriceFieldForListingSegment(filters.listingSegment)
 
-  if (filters.city) {
-    apiFilters.ort = [{ op: 'LIKE', val: `%${filters.city}%` }]
+  if (filters.objectType) {
+    apiFilters.objekttyp = [
+      { op: 'LIKE', val: `%${filters.objectType.replaceAll('_', '%')}%` },
+    ]
+  }
+
+  if (filters.location) {
+    const ortSearch = getLocationOrtSearch(filters.location)
+    if (ortSearch) {
+      apiFilters.ort = [{ op: 'LIKE', val: `%${ortSearch}%` }]
+    }
   }
 
   if (typeof filters.minPrice === 'number') {
@@ -388,10 +536,11 @@ const buildEstateFilters = (
     ]
   }
 
-  if (typeof filters.maxRooms === 'number') {
-    apiFilters.anzahl_zimmer = [
-      ...(apiFilters.anzahl_zimmer ?? []),
-      { op: '<=', val: filters.maxRooms },
+  if (typeof filters.minArea === 'number') {
+    const areaField = filters.areaType ?? 'wohnflaeche'
+    apiFilters[areaField] = [
+      ...(apiFilters[areaField] ?? []),
+      { op: '>=', val: filters.minArea },
     ]
   }
 
@@ -605,14 +754,14 @@ export const getPropertyById = async (
   let result: OnOfficeActionResult
 
   try {
-    const action = buildReadEstateAction(propertyId, undefined, ONOFFICE_FIELDS)
+    const action = buildReadEstateAction(propertyId, undefined, ONOFFICE_DETAIL_FIELDS)
     result = await fetchOnOffice(action)
   } catch (error) {
     if (error instanceof Error && error.message.includes('Unknown field')) {
       const fallbackAction = buildReadEstateAction(
         propertyId,
         undefined,
-        ONOFFICE_FALLBACK_FIELDS
+        ONOFFICE_FIELDS
       )
       result = await fetchOnOffice(fallbackAction)
     } else {

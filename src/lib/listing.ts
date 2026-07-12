@@ -17,6 +17,11 @@ export const LISTING_PRICE_LABELS: Record<ListingSegment, string> = {
   mieten: 'Kaltmiete',
 }
 
+export const LISTING_TYPE_BADGE_LABELS: Record<ListingSegment, string> = {
+  kaufen: 'Kauf',
+  mieten: 'Miete',
+}
+
 export const LISTING_MIN_PRICE_PLACEHOLDERS: Record<ListingSegment, string> = {
   kaufen: 'Mindestpreis',
   mieten: 'Mindestmiete',

@@ -1,15 +1,18 @@
 import { z } from 'zod'
 
+import { isPropertyAreaType } from '@/lib/filter-options'
 import { isListingSegment } from '@/lib/listing'
 import type { ListingSegment } from '@/lib/listing'
 import type { PropertyFilters } from '@/types/property'
 
 const filterSchema = z.object({
-  city: z.string().trim().min(1).optional(),
+  objectType: z.string().trim().min(1).optional(),
+  location: z.string().trim().min(1).optional(),
   minPrice: z.coerce.number().nonnegative().optional(),
   maxPrice: z.coerce.number().nonnegative().optional(),
+  minArea: z.coerce.number().nonnegative().optional(),
+  areaType: z.string().trim().min(1).optional(),
   minRooms: z.coerce.number().nonnegative().optional(),
-  maxRooms: z.coerce.number().nonnegative().optional(),
 })
 
 /**
@@ -35,9 +38,20 @@ export const parseFilters = (
     return { listingSegment }
   }
 
+  const areaType =
+    parsed.data.areaType && isPropertyAreaType(parsed.data.areaType)
+      ? parsed.data.areaType
+      : undefined
+
   return {
     listingSegment,
-    ...parsed.data,
+    objectType: parsed.data.objectType,
+    location: parsed.data.location,
+    minPrice: parsed.data.minPrice,
+    maxPrice: parsed.data.maxPrice,
+    minArea: parsed.data.minArea,
+    areaType,
+    minRooms: parsed.data.minRooms,
   }
 }
 

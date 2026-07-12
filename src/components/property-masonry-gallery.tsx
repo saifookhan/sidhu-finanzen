@@ -5,23 +5,25 @@ import { useCallback, useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
-type PropertyGalleryProps = {
+type PropertyMasonryGalleryProps = {
   images: PropertyImage[]
   propertyTitle: string
 }
 
 /**
- * Property image gallery with inline navigation and fullscreen lightbox.
+ * Masonry image grid matching the Elementor gallery layout on the reference site.
  *
  * @param images All images for the current property.
  * @param propertyTitle Title used for image alt text.
  */
-export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps) => {
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+export const PropertyMasonryGallery = ({
+  images,
+  propertyTitle,
+}: PropertyMasonryGalleryProps) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   const totalImages = images.length
-  const activeImage = images[activeIndex]
+  const activeImage = activeIndex === null ? null : images[activeIndex]
 
   /**
    * Moves to another image by offset, wrapping at the ends.
@@ -30,15 +32,19 @@ export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps)
    */
   const goToOffset = useCallback(
     (offset: number) => {
-      if (totalImages === 0) {
+      if (activeIndex === null || totalImages === 0) {
         return
       }
 
       setActiveIndex((current) => {
+        if (current === null) {
+          return 0
+        }
+
         return (current + offset + totalImages) % totalImages
       })
     },
-    [totalImages]
+    [activeIndex, totalImages]
   )
 
   /**
@@ -48,18 +54,17 @@ export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps)
    */
   const openLightbox = useCallback((index: number) => {
     setActiveIndex(index)
-    setIsLightboxOpen(true)
   }, [])
 
   /**
    * Closes the fullscreen lightbox popup.
    */
   const closeLightbox = useCallback(() => {
-    setIsLightboxOpen(false)
+    setActiveIndex(null)
   }, [])
 
   useEffect(() => {
-    if (!isLightboxOpen) {
+    if (activeIndex === null) {
       return
     }
 
@@ -89,102 +94,58 @@ export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps)
       document.body.style.overflow = ''
       document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [closeLightbox, goToOffset, isLightboxOpen])
+  }, [activeIndex, closeLightbox, goToOffset])
 
-  if (!activeImage) {
-    return (
-      <div className='flex h-72 w-full items-center justify-center bg-gradient-to-r from-[#e4e4e7] to-[#f4f4f5] text-sm text-zinc-600'>
-        Keine Bilder verfuegbar
-      </div>
-    )
+  if (totalImages === 0) {
+    return null
   }
 
   return (
     <>
-      <section className='space-y-3'>
-        <div className='group relative h-72 w-full overflow-hidden bg-gradient-to-r from-[#e4e4e7] to-[#f4f4f5]'>
-          <button
-            type='button'
-            onClick={() => openLightbox(activeIndex)}
-            className='h-full w-full cursor-zoom-in'
-            aria-label='Bild in Vollbild oeffnen'
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={activeImage.url}
-              alt={activeImage.title || propertyTitle}
-              className='h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]'
-            />
-          </button>
-
-          {totalImages > 1 ? (
-            <>
+      <section className='border-t border-black/10 pt-6'>
+        <div
+          className={cn(
+            'columns-2 gap-3 sm:columns-3',
+            '[&>button]:mb-3 [&>button]:break-inside-avoid'
+          )}
+        >
+          {images.map((image, index) => {
+            return (
               <button
+                key={`${image.url}-${index}`}
                 type='button'
-                aria-label='Vorheriges Bild'
-                onClick={() => goToOffset(-1)}
+                onClick={() => openLightbox(index)}
+                aria-label={image.title || `Bild ${index + 1} anzeigen`}
                 className={cn(
-                  'absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
-                  'rounded-full bg-white/90 text-lg text-[#52525b] shadow-md transition hover:bg-white'
+                  'group relative w-full overflow-hidden rounded-lg',
+                  'cursor-zoom-in bg-[#f4f4f5] transition hover:opacity-95'
                 )}
               >
-                ←
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image.url}
+                  alt={image.title || `${propertyTitle} ${index + 1}`}
+                  className='h-auto w-full object-cover transition duration-300 group-hover:scale-[1.02]'
+                  loading='lazy'
+                />
+                {image.title ? (
+                  <span
+                    className={cn(
+                      'absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent',
+                      'px-3 py-2 text-left text-xs font-medium text-white opacity-0',
+                      'transition group-hover:opacity-100'
+                    )}
+                  >
+                    {image.title}
+                  </span>
+                ) : null}
               </button>
-              <button
-                type='button'
-                aria-label='Naechstes Bild'
-                onClick={() => goToOffset(1)}
-                className={cn(
-                  'absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
-                  'rounded-full bg-white/90 text-lg text-[#52525b] shadow-md transition hover:bg-white'
-                )}
-              >
-                →
-              </button>
-              <span className='absolute bottom-3 right-3 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white'>
-                {activeIndex + 1} / {totalImages}
-              </span>
-            </>
-          ) : null}
+            )
+          })}
         </div>
-
-        {totalImages > 1 ? (
-          <div
-            className={cn(
-              'flex gap-2 overflow-x-auto pb-1',
-              '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-            )}
-          >
-            {images.map((image, index) => {
-              const isActive = index === activeIndex
-
-              return (
-                <button
-                  key={`${image.url}-${index}`}
-                  type='button'
-                  onClick={() => setActiveIndex(index)}
-                  onDoubleClick={() => openLightbox(index)}
-                  aria-label={`Bild ${index + 1} anzeigen`}
-                  className={cn(
-                    'h-16 w-24 shrink-0 overflow-hidden rounded-md border-2 transition',
-                    isActive ? 'border-[#52525b]' : 'border-transparent opacity-75 hover:opacity-100'
-                  )}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={image.url}
-                    alt={image.title || `${propertyTitle} ${index + 1}`}
-                    className='h-full w-full object-cover'
-                    loading='lazy'
-                  />
-                </button>
-              )
-            })}
-          </div>
-        ) : null}
       </section>
 
-      {isLightboxOpen ? (
+      {activeImage && activeIndex !== null ? (
         <div
           className='fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4'
           role='dialog'
@@ -194,7 +155,7 @@ export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps)
         >
           <button
             type='button'
-            aria-label='Galerie schliessen'
+            aria-label='Galerie schließen'
             onClick={closeLightbox}
             className='absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-2xl text-white transition hover:bg-white/25'
           >
@@ -216,7 +177,7 @@ export const PropertyGallery = ({ images, propertyTitle }: PropertyGalleryProps)
               </button>
               <button
                 type='button'
-                aria-label='Naechstes Bild'
+                aria-label='Nächstes Bild'
                 onClick={(event) => {
                   event.stopPropagation()
                   goToOffset(1)

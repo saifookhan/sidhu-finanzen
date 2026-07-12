@@ -1,16 +1,32 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #f1efe9;
-  --foreground: #14202c;
+  --background: #f4f4f5;
+  --foreground: #18181b;
   --surface: #ffffff;
-  --brand: #24313d;
-  --muted: #6d7781;
+  --brand: #52525b;
+  --muted: #71717a;
+  --sidhu-bg: #f6f9f1;
+  --sidhu-border: #e0e4d8;
+  --sidhu-title: #061619;
+  --sidhu-meta: #7b808c;
+  --sidhu-sage: #bed1ac;
+  --sidhu-sage-dark: #bdc9ad;
+  --sidhu-accent: #61ce70;
+  --sidhu-dark: #001d21;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sidhu-bg: var(--sidhu-bg);
+  --color-sidhu-border: var(--sidhu-border);
+  --color-sidhu-title: var(--sidhu-title);
+  --color-sidhu-meta: var(--sidhu-meta);
+  --color-sidhu-sage: var(--sidhu-sage);
+  --color-sidhu-sage-dark: var(--sidhu-sage-dark);
+  --color-sidhu-accent: var(--sidhu-accent);
+  --color-sidhu-dark: var(--sidhu-dark);
   --font-sans: var(--font-manrope);
 }
 

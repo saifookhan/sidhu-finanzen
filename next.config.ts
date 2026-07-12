@@ -23,6 +23,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: https:",
   "font-src 'self' data:",
   connectSrc,
+  "frame-src 'self' https://www.openstreetmap.org",
   `frame-ancestors ${frameAncestors}`,
 ].join('; ')
 
