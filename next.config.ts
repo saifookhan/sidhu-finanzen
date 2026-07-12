@@ -31,12 +31,17 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/embed/properties',
-        destination: '/immobilien',
+        destination: '/immobilien/kaufen',
         permanent: true,
       },
       {
         source: '/embed/properties/:propertyId',
-        destination: '/immobilien/:propertyId',
+        destination: '/immobilien/kaufen/:propertyId',
+        permanent: true,
+      },
+      {
+        source: '/immobilien/:propertyId(\\d+)',
+        destination: '/immobilien/kaufen/:propertyId',
         permanent: true,
       },
     ]

@@ -1,46 +1,37 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
 
 import { PropertyCarousel } from '@/components/property-carousel'
 import { PropertyGallery } from '@/components/property-gallery'
-import { getActiveProperties, getPropertyById } from '@/lib/onoffice'
+import {
+  buildListingListPath,
+  LISTING_PRICE_LABELS,
+  type ListingSegment,
+} from '@/lib/listing'
 import type { Property } from '@/types/property'
 
-type DetailsPageProps = {
-  params: Promise<{ propertyId: string }>
+type ImmobilienDetailViewProps = {
+  listingSegment: ListingSegment
+  property: Property
+  relatedProperties: Property[]
 }
 
 /**
- * Iframe-friendly property details page.
+ * Shared detail layout for kaufen and mieten property pages.
  *
- * @param params Dynamic route params containing property id.
+ * @param listingSegment Active listing segment for the page.
+ * @param property Loaded property details.
+ * @param relatedProperties Related listings in the same segment.
  */
-const ImmobilienDetailPage = async ({ params }: DetailsPageProps) => {
-  const { propertyId } = await params
-  let property = null
-  let relatedProperties: Property[] = []
-
-  try {
-    const [loadedProperty, activeProperties] = await Promise.all([
-      getPropertyById(propertyId),
-      getActiveProperties({}),
-    ])
-
-    property = loadedProperty
-    relatedProperties = activeProperties.filter((entry) => entry.id !== propertyId)
-  } catch (error) {
-    console.error('Failed to render property details page', error)
-  }
-
-  if (!property) {
-    notFound()
-  }
-
+export const ImmobilienDetailView = ({
+  listingSegment,
+  property,
+  relatedProperties,
+}: ImmobilienDetailViewProps) => {
   return (
     <main className='bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
       <div className='mx-auto max-w-4xl space-y-6'>
         <Link
-          href='/immobilien'
+          href={buildListingListPath(listingSegment)}
           className='inline-flex rounded-md border border-[#24313d] px-3 py-1.5 text-sm font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
         >
           Zurück zur Liste
@@ -59,7 +50,7 @@ const ImmobilienDetailPage = async ({ params }: DetailsPageProps) => {
 
             <div className='grid grid-cols-2 gap-3 rounded-lg bg-[#f7f8fa] p-4 text-sm md:grid-cols-4'>
               <div>
-                <p className='text-zinc-500'>Preis</p>
+                <p className='text-zinc-500'>{LISTING_PRICE_LABELS[listingSegment]}</p>
                 <p className='font-medium text-zinc-900'>
                   {property.price.toLocaleString('de-DE')} {property.currency}
                 </p>
@@ -85,12 +76,13 @@ const ImmobilienDetailPage = async ({ params }: DetailsPageProps) => {
               </p>
             </section>
 
-            <PropertyCarousel properties={relatedProperties} />
+            <PropertyCarousel
+              listingSegment={listingSegment}
+              properties={relatedProperties}
+            />
           </div>
         </article>
       </div>
     </main>
   )
 }
-
-export default ImmobilienDetailPage

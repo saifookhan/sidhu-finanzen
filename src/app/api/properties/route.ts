@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { parseFilters } from '@/lib/filters'
+import { parseFilters, parseListingSegment } from '@/lib/filters'
 import { getActiveProperties } from '@/lib/onoffice'
 
 /**
@@ -12,7 +12,9 @@ export const GET = async (request: Request) => {
   try {
     const url = new URL(request.url)
     const filterInput = Object.fromEntries(url.searchParams.entries())
-    const filters = parseFilters(filterInput)
+    const listingSegment =
+      parseListingSegment(url.searchParams.get('segment') ?? 'kaufen') ?? 'kaufen'
+    const filters = parseFilters(listingSegment, filterInput)
     const properties = await getActiveProperties(filters)
     return NextResponse.json({ data: properties })
   } catch (error) {

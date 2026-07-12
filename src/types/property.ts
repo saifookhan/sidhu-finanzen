@@ -1,3 +1,5 @@
+import type { ListingSegment } from '@/lib/listing'
+
 /**
  * One image attached to a property listing.
  */
@@ -25,12 +27,14 @@ export type Property = {
   images: PropertyImage[]
   description: string
   status: 'active' | 'inactive' | 'unknown'
+  listingSegment: ListingSegment
 }
 
 /**
  * Query filters exposed in the iframe list page.
  */
 export type PropertyFilters = {
+  listingSegment: ListingSegment
   city?: string
   minPrice?: number
   maxPrice?: number

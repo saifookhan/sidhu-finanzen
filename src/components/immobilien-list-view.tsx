@@ -1,0 +1,74 @@
+import { PropertyCard } from '@/components/property-card'
+import { PropertyFilterForm } from '@/components/property-filter-form'
+import {
+  LISTING_SEGMENT_HEADINGS,
+  LISTING_SEGMENT_LABELS,
+  type ListingSegment,
+} from '@/lib/listing'
+import type { Property, PropertyFilters } from '@/types/property'
+
+type ImmobilienListViewProps = {
+  listingSegment: ListingSegment
+  filters: PropertyFilters
+  properties: Property[]
+  hasLoadError: boolean
+}
+
+/**
+ * Shared list layout for kaufen and mieten listing pages.
+ *
+ * @param listingSegment Active listing segment for the page.
+ * @param filters Active filter values from the URL.
+ * @param properties Properties returned from OnOffice.
+ * @param hasLoadError Whether the OnOffice request failed.
+ */
+export const ImmobilienListView = ({
+  listingSegment,
+  filters,
+  properties,
+  hasLoadError,
+}: ImmobilienListViewProps) => {
+  const emptyLabel =
+    listingSegment === 'kaufen'
+      ? 'Keine Kaufimmobilien für die gewählten Filter gefunden.'
+      : 'Keine Mietimmobilien für die gewählten Filter gefunden.'
+
+  return (
+    <main className='bg-[#f1efe9] px-4 py-8 text-[#14202c]'>
+      <div className='mx-auto max-w-6xl space-y-6'>
+        <header className='space-y-2'>
+          <p className='text-xs font-medium uppercase tracking-[0.15em] text-[#43586c]'>
+            {LISTING_SEGMENT_LABELS[listingSegment]}
+          </p>
+          <h1 className='text-3xl font-extrabold md:text-4xl'>
+            {LISTING_SEGMENT_HEADINGS[listingSegment]}
+          </h1>
+          <p className='text-sm text-zinc-700'>
+            Gefilterte OnOffice-Immobilien für die Einbettung auf sidhu-finanzen.de.
+          </p>
+        </header>
+
+        <PropertyFilterForm filters={filters} />
+
+        {hasLoadError ? (
+          <p className='rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900'>
+            Immobilien konnten nicht aus OnOffice geladen werden. Prüfe deine API-Basis-URL und
+            Zugangsdaten in `.env`.
+          </p>
+        ) : null}
+
+        <section className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+          {properties.map((property) => {
+            return <PropertyCard key={property.id} property={property} />
+          })}
+        </section>
+
+        {properties.length === 0 ? (
+          <p className='rounded-xl border border-black/10 bg-white p-6 text-sm text-zinc-700'>
+            {emptyLabel}
+          </p>
+        ) : null}
+      </div>
+    </main>
+  )
+}

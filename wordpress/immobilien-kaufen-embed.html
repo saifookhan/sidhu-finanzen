@@ -1,16 +1,15 @@
 <!--
-  Deprecated: use wordpress/immobilien-kaufen-embed.html instead.
+  WordPress Custom HTML block for https://sidhu-finanzen.de/immobilien-kaufen/
 
-  This file remains as a reference for the legacy /immobilien/ WordPress page.
-  New setup uses separate pages:
-  - /immobilien-kaufen/
-  - /immobilien-mieten/
+  Shareable detail URLs:
+  - List:   https://sidhu-finanzen.de/immobilien-kaufen/
+  - Detail: https://sidhu-finanzen.de/immobilien-kaufen/?immobilie=33
 -->
 
 <iframe
-  id="sidhu-properties"
-  src="https://sidhu-finanzen.vercel.app/immobilien"
-  title="Aktive Immobilien"
+  id="sidhu-properties-kaufen"
+  src="https://sidhu-finanzen.vercel.app/immobilien/kaufen"
+  title="Immobilien zum Kaufen"
   style="width:100%;border:0;display:block;"
   loading="lazy"
   referrerpolicy="strict-origin-when-cross-origin"
@@ -18,17 +17,18 @@
 
 <script>
   (function () {
-    var iframe = document.getElementById('sidhu-properties')
+    var iframe = document.getElementById('sidhu-properties-kaufen')
     if (!iframe) return
 
     var appOrigin = 'https://sidhu-finanzen.vercel.app'
-    var parentBasePath = '/immobilien'
+    var parentBasePath = '/immobilien-kaufen'
+    var listingSegment = 'kaufen'
     var propertyQueryKey = 'immobilie'
 
     function iframeSrcForPropertyId(propertyId) {
       return propertyId
-        ? appOrigin + '/immobilien/' + propertyId
-        : appOrigin + '/immobilien'
+        ? appOrigin + '/immobilien/' + listingSegment + '/' + propertyId
+        : appOrigin + '/immobilien/' + listingSegment
     }
 
     function getPropertyIdFromUrl() {
@@ -36,7 +36,7 @@
       var fromQuery = url.searchParams.get(propertyQueryKey)
       if (fromQuery) return fromQuery
 
-      var legacyMatch = url.pathname.match(/\/immobilien\/(\d+)\/?$/)
+      var legacyMatch = url.pathname.match(/\/immobilien-kaufen\/(\d+)\/?$/)
       return legacyMatch ? legacyMatch[1] : null
     }
 
@@ -55,7 +55,7 @@
 
     function normalizeLegacyPathUrl() {
       var url = new URL(window.location.href)
-      var legacyMatch = url.pathname.match(/\/immobilien\/(\d+)\/?$/)
+      var legacyMatch = url.pathname.match(/\/immobilien-kaufen\/(\d+)\/?$/)
 
       if (!legacyMatch) return
 
@@ -80,6 +80,8 @@
       }
 
       if (event.data.type === 'sidhu-iframe-navigate') {
+        if (event.data.listingSegment && event.data.listingSegment !== listingSegment) return
+
         var nextUrl = parentUrlForPropertyId(event.data.propertyId)
         var currentUrl = window.location.pathname + window.location.search
         if (currentUrl === nextUrl) return

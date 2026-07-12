@@ -1,4 +1,9 @@
 import { cn } from '@/lib/utils'
+import {
+  buildListingListPath,
+  LISTING_MAX_PRICE_PLACEHOLDERS,
+  LISTING_MIN_PRICE_PLACEHOLDERS,
+} from '@/lib/listing'
 import type { PropertyFilters } from '@/types/property'
 
 type PropertyFilterFormProps = {
@@ -19,6 +24,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
   return (
     <form
       method='GET'
+      action={buildListingListPath(filters.listingSegment)}
       className='grid grid-cols-1 gap-3 rounded-xl border border-black/10 bg-[#f8f6f2] p-4 md:grid-cols-5'
     >
       <input
@@ -32,7 +38,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
         className={inputClassName}
         type='number'
         name='minPrice'
-        placeholder='Mindestpreis'
+        placeholder={LISTING_MIN_PRICE_PLACEHOLDERS[filters.listingSegment]}
         min={0}
         defaultValue={filters.minPrice}
       />
@@ -40,7 +46,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
         className={inputClassName}
         type='number'
         name='maxPrice'
-        placeholder='Höchstpreis'
+        placeholder={LISTING_MAX_PRICE_PLACEHOLDERS[filters.listingSegment]}
         min={0}
         defaultValue={filters.maxPrice}
       />

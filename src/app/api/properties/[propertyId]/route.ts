@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { parseListingSegment } from '@/lib/filters'
 import { getPropertyById } from '@/lib/onoffice'
 
 type Params = {
@@ -9,13 +10,16 @@ type Params = {
 /**
  * Returns one active property by id.
  *
- * @param _request Incoming request object.
+ * @param request Incoming request object.
  * @param params Dynamic route params.
  */
-export const GET = async (_request: Request, { params }: Params) => {
+export const GET = async (request: Request, { params }: Params) => {
   try {
     const { propertyId } = await params
-    const property = await getPropertyById(propertyId)
+    const url = new URL(request.url)
+    const listingSegment =
+      parseListingSegment(url.searchParams.get('segment') ?? 'kaufen') ?? 'kaufen'
+    const property = await getPropertyById(propertyId, listingSegment)
 
     if (!property) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 })

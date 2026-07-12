@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { useCallback, useRef } from 'react'
 
+import { buildListingDetailPath, type ListingSegment } from '@/lib/listing'
 import { cn } from '@/lib/utils'
 import type { Property } from '@/types/property'
 
 type PropertyCarouselProps = {
+  listingSegment: ListingSegment
   properties: Property[]
 }
 
@@ -15,7 +17,10 @@ type PropertyCarouselProps = {
  *
  * @param properties Related properties to display (excluding current).
  */
-export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
+export const PropertyCarousel = ({
+  listingSegment,
+  properties,
+}: PropertyCarouselProps) => {
   const trackRef = useRef<HTMLDivElement>(null)
 
   /**
@@ -118,7 +123,7 @@ export const PropertyCarousel = ({ properties }: PropertyCarouselProps) => {
                     {property.price.toLocaleString('de-DE')} {property.currency}
                   </strong>
                   <Link
-                    href={`/immobilien/${property.id}`}
+                    href={buildListingDetailPath(listingSegment, property.id)}
                     className='rounded-md border border-[#24313d] px-2.5 py-1 text-xs font-medium text-[#24313d] transition hover:bg-[#24313d] hover:text-white'
                   >
                     Ansehen

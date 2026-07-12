@@ -3,6 +3,11 @@ import 'server-only'
 import crypto from 'node:crypto'
 
 import { getEnv } from '@/lib/env'
+import {
+  toListingSegment,
+  toOnOfficeMarketingType,
+  type ListingSegment,
+} from '@/lib/listing'
 import type { Property, PropertyFilters, PropertyImage } from '@/types/property'
 
 type OnOfficeFilterCondition = {
@@ -73,7 +78,9 @@ const ONOFFICE_FIELDS = [
   'ort',
   'plz',
   'strasse',
+  'vermarktungsart',
   'kaufpreis',
+  'kaltmiete',
   'wohnflaeche',
   'anzahl_zimmer',
   'anzahl_schlafzimmer',
@@ -82,7 +89,17 @@ const ONOFFICE_FIELDS = [
   'lage',
   'land',
 ]
-const ONOFFICE_FALLBACK_FIELDS = ['Id', 'objekttitel', 'ort', 'plz', 'strasse', 'kaufpreis', 'status']
+const ONOFFICE_FALLBACK_FIELDS = [
+  'Id',
+  'objekttitel',
+  'ort',
+  'plz',
+  'strasse',
+  'vermarktungsart',
+  'kaufpreis',
+  'kaltmiete',
+  'status',
+]
 
 /**
  * Checks whether a payload can be used as a key/value record.
@@ -154,6 +171,15 @@ const toString = (value: unknown, fallback = ''): string => {
 }
 
 /**
+ * Resolves the price field used for one listing segment.
+ *
+ * @param listingSegment Public listing segment from the route.
+ */
+const getPriceFieldForListingSegment = (listingSegment: ListingSegment): string => {
+  return listingSegment === 'kaufen' ? 'kaufpreis' : 'kaltmiete'
+}
+
+/**
  * Maps an OnOffice API record to the app's property shape.
  *
  * @param record Raw API record for a single property.
@@ -168,12 +194,17 @@ const mapOnOfficeProperty = (record: OnOfficePropertyRecord): Property => {
   const cityValue = pickValue(record, ['ort', 'city'])
   const zipValue = pickValue(record, ['plz', 'zipCode'])
   const addressValue = pickValue(record, ['strasse', 'address'])
-  const priceValue = pickValue(record, ['kaufpreis', 'price'])
+  const marketingTypeValue = pickValue(record, ['vermarktungsart'])
+  const purchasePriceValue = pickValue(record, ['kaufpreis', 'price'])
+  const rentPriceValue = pickValue(record, ['kaltmiete', 'warmmiete', 'nettokaltmiete'])
   const areaValue = pickValue(record, ['wohnflaeche', 'areaSqm'])
   const roomsValue = pickValue(record, ['anzahl_zimmer', 'rooms'])
   const bedroomsValue = pickValue(record, ['anzahl_schlafzimmer', 'bedrooms'])
   const descriptionValue = pickValue(record, ['objektbeschreibung', 'description'])
   const imageValue = pickValue(record, ['titelbild', 'imageUrl'])
+  const listingSegment =
+    toListingSegment(toString(marketingTypeValue, '')) ?? 'kaufen'
+  const priceValue = listingSegment === 'mieten' ? rentPriceValue : purchasePriceValue
 
   return {
     id: toString(idValue, ''),
@@ -190,6 +221,7 @@ const mapOnOfficeProperty = (record: OnOfficePropertyRecord): Property => {
     images: [],
     description: toString(descriptionValue, ''),
     status,
+    listingSegment,
   }
 }
 
@@ -324,18 +356,29 @@ const buildEstateFilters = (
 ): Record<string, OnOfficeFilterCondition[]> => {
   const apiFilters: Record<string, OnOfficeFilterCondition[]> = {
     status: [{ op: '=', val: 1 }],
+    vermarktungsart: [
+      { op: '=', val: toOnOfficeMarketingType(filters.listingSegment) },
+    ],
   }
+
+  const priceField = getPriceFieldForListingSegment(filters.listingSegment)
 
   if (filters.city) {
     apiFilters.ort = [{ op: 'LIKE', val: `%${filters.city}%` }]
   }
 
   if (typeof filters.minPrice === 'number') {
-    apiFilters.kaufpreis = [...(apiFilters.kaufpreis ?? []), { op: '>=', val: filters.minPrice }]
+    apiFilters[priceField] = [
+      ...(apiFilters[priceField] ?? []),
+      { op: '>=', val: filters.minPrice },
+    ]
   }
 
   if (typeof filters.maxPrice === 'number') {
-    apiFilters.kaufpreis = [...(apiFilters.kaufpreis ?? []), { op: '<=', val: filters.maxPrice }]
+    apiFilters[priceField] = [
+      ...(apiFilters[priceField] ?? []),
+      { op: '<=', val: filters.maxPrice },
+    ]
   }
 
   if (typeof filters.minRooms === 'number') {
@@ -374,7 +417,9 @@ const buildReadEstateAction = (
   }
 
   if (!resourceId) {
-    parameters.filter = buildEstateFilters(filters ?? {})
+    parameters.filter = buildEstateFilters(
+      filters ?? { listingSegment: 'kaufen' }
+    )
     parameters.listlimit = 50
     parameters.listoffset = 0
   }
@@ -551,9 +596,11 @@ export const getActiveProperties = async (
  * Fetches one property by id from OnOffice.
  *
  * @param propertyId External property id.
+ * @param listingSegment Expected listing segment for route validation.
  */
 export const getPropertyById = async (
-  propertyId: string
+  propertyId: string,
+  listingSegment: ListingSegment
 ): Promise<Property | null> => {
   let result: OnOfficeActionResult
 
@@ -580,7 +627,7 @@ export const getPropertyById = async (
   }
 
   const property = mapOnOfficeProperty(flattenEstateRecord(record))
-  if (property.status !== 'active') {
+  if (property.status !== 'active' || property.listingSegment !== listingSegment) {
     return null
   }
 

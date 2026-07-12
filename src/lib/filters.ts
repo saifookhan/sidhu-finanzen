@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { isListingSegment } from '@/lib/listing'
+import type { ListingSegment } from '@/lib/listing'
 import type { PropertyFilters } from '@/types/property'
 
 const filterSchema = z.object({
@@ -11,11 +13,13 @@ const filterSchema = z.object({
 })
 
 /**
- * Parses search params into safe filter values.
+ * Parses search params into safe filter values for one listing segment.
  *
+ * @param listingSegment Listing segment from the route.
  * @param searchParams Raw URL search params from Next.js pages/routes.
  */
 export const parseFilters = (
+  listingSegment: ListingSegment,
   searchParams: Record<string, string | string[] | undefined>
 ): PropertyFilters => {
   const flatInput: Record<string, string> = {}
@@ -28,8 +32,20 @@ export const parseFilters = (
 
   const parsed = filterSchema.safeParse(flatInput)
   if (!parsed.success) {
-    return {}
+    return { listingSegment }
   }
 
-  return parsed.data
+  return {
+    listingSegment,
+    ...parsed.data,
+  }
+}
+
+/**
+ * Type guard for supported listing route segments.
+ *
+ * @param value Unknown route segment.
+ */
+export const parseListingSegment = (value: string): ListingSegment | null => {
+  return isListingSegment(value) ? value : null
 }

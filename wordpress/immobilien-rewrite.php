@@ -1,17 +1,16 @@
 <?php
 /**
- * Sidhu Finanzen — Immobilien detail URLs on WordPress
+ * Sidhu Finanzen — detail URL redirects for kaufen and mieten WordPress pages.
  *
- * Add to your theme functions.php (replace any previous immobilien rewrite snippet).
+ * Add to your theme functions.php.
  *
- * Why: WordPress has no page at /immobilien/33/ and the theme redirects that
- * to /page-404/33/. This maps pretty URLs to the working query-param format.
+ * List pages:
+ * - https://sidhu-finanzen.de/immobilien-kaufen/
+ * - https://sidhu-finanzen.de/immobilien-mieten/
  *
- * Works immediately — no permalink flush required.
- *
- * List:   https://sidhu-finanzen.de/immobilien/
- * Detail: https://sidhu-finanzen.de/immobilien/?immobilie=33
- * Pretty: https://sidhu-finanzen.de/immobilien/33/  → redirects to ?immobilie=33
+ * Detail pages:
+ * - https://sidhu-finanzen.de/immobilien-kaufen/?immobilie=33
+ * - https://sidhu-finanzen.de/immobilien-mieten/?immobilie=33
  */
 
 add_action('init', function () {
@@ -22,16 +21,24 @@ add_action('init', function () {
   $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
   $path = strtok($request_uri, '?') ?: '';
 
-  if (!preg_match('#/immobilien/(\d+)/?$#', $path, $matches)) {
-    return;
-  }
+  $routes = [
+    '/immobilien-kaufen' => '/immobilien-kaufen/',
+    '/immobilien-mieten' => '/immobilien-mieten/',
+    '/immobilien' => '/immobilien-kaufen/',
+  ];
 
-  wp_safe_redirect(home_url('/immobilien/?immobilie=' . $matches[1]), 301);
-  exit;
+  foreach ($routes as $legacyPath => $targetListPath) {
+    if (!preg_match('#' . preg_quote($legacyPath, '#') . '/(\d+)/?$#', $path, $matches)) {
+      continue;
+    }
+
+    wp_safe_redirect(home_url($targetListPath . '?immobilie=' . $matches[1]), 301);
+    exit;
+  }
 }, 0);
 
 add_filter('redirect_canonical', function ($redirect_url, $requested_url) {
-  if (preg_match('#/immobilien/\d+/?(\?.*)?$#', (string) $requested_url)) {
+  if (preg_match('#/immobilien(?:-kaufen|-mieten)?/\d+/?(\?.*)?$#', (string) $requested_url)) {
     return false;
   }
 

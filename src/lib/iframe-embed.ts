@@ -1,8 +1,6 @@
 export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
 export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
 
-export const IMMOBILIEN_LIST_PATH = '/immobilien'
-
 export const IFRAME_PARENT_ORIGINS = [
   'https://sidhu-finanzen.de',
   'https://www.sidhu-finanzen.de',
@@ -10,25 +8,42 @@ export const IFRAME_PARENT_ORIGINS = [
 
 export const IFRAME_HEIGHT_REPORT_DELAYS_MS = [0, 50, 150, 300, 600, 1000, 2000] as const
 
-const immobilienDetailPathPattern = /^\/immobilien\/([^/]+)$/
+const immobilienDetailPathPattern = /^\/immobilien\/(kaufen|mieten)\/([^/]+)$/
 
-/**
- * Builds the detail path for one property.
- *
- * @param propertyId OnOffice property id.
- */
-export const buildImmobilienDetailPath = (propertyId: string): string => {
-  return `${IMMOBILIEN_LIST_PATH}/${propertyId}`
+export type IframeNavigationState = {
+  listingSegment: 'kaufen' | 'mieten' | null
+  propertyId: string | null
 }
 
 /**
- * Extracts a property id from an immobilien detail pathname.
+ * Parses listing navigation state from an app pathname.
  *
  * @param pathname Current immobilien pathname.
  */
-export const parseImmobilienPropertyId = (pathname: string): string | null => {
+export const parseIframeNavigationState = (pathname: string): IframeNavigationState => {
   const match = pathname.match(immobilienDetailPathPattern)
-  return match?.[1] ?? null
+
+  if (!match) {
+    return {
+      listingSegment: null,
+      propertyId: null,
+    }
+  }
+
+  const listingSegment = match[1]
+  const propertyId = match[2]
+
+  if (listingSegment !== 'kaufen' && listingSegment !== 'mieten') {
+    return {
+      listingSegment: null,
+      propertyId: null,
+    }
+  }
+
+  return {
+    listingSegment,
+    propertyId,
+  }
 }
 
 /**
@@ -77,12 +92,13 @@ export const postIframeHeight = (): void => {
  * @param pathname Current immobilien pathname.
  */
 export const postIframeNavigation = (pathname: string): void => {
-  const propertyId = parseImmobilienPropertyId(pathname)
+  const navigation = parseIframeNavigationState(pathname)
 
   postToParentFrames({
     type: IFRAME_NAVIGATE_MESSAGE_TYPE,
     path: pathname,
-    propertyId,
+    listingSegment: navigation.listingSegment,
+    propertyId: navigation.propertyId,
     url: `${window.location.origin}${pathname}`,
   })
 }
