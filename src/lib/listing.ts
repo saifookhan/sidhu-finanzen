@@ -8,8 +8,8 @@ export const LISTING_SEGMENT_LABELS: Record<ListingSegment, string> = {
 }
 
 export const LISTING_SEGMENT_HEADINGS: Record<ListingSegment, string> = {
-  kaufen: 'Immobilien zum Kaufen',
-  mieten: 'Immobilien zur Miete',
+  kaufen: 'Immobilie kaufen',
+  mieten: 'Immobilie mieten',
 }
 
 export const LISTING_PRICE_LABELS: Record<ListingSegment, string> = {

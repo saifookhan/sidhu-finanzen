@@ -210,12 +210,8 @@ export const PropertyListingTile = ({ property, className }: PropertyListingTile
         className
       )}
     >
-      <Link
-        href={detailPath}
-        aria-label={property.title}
-        className='relative block overflow-hidden'
-      >
-        <div className='absolute left-3 top-3 z-10 flex flex-wrap gap-2'>
+      <div className='relative overflow-hidden'>
+        <div className='absolute left-3 top-3 z-20 flex flex-wrap gap-2'>
           <span
             className={cn(
               'rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
@@ -240,8 +236,9 @@ export const PropertyListingTile = ({ property, className }: PropertyListingTile
           images={property.images}
           fallbackImageUrl={property.imageUrl}
           propertyTitle={property.title}
+          detailPath={detailPath}
         />
-      </Link>
+      </div>
 
       <div className='flex flex-1 flex-col bg-white p-4'>
         <div className='space-y-3'>
