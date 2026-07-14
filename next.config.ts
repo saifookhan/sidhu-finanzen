@@ -25,57 +25,69 @@ const contentSecurityPolicy = [
   connectSrc,
   "frame-src 'self' https://www.openstreetmap.org",
   `frame-ancestors ${frameAncestors}`,
-].join('; ')
+].join("; ");
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "plus.unsplash.com",
+      },
+    ],
+  },
   async redirects() {
     return [
       {
-        source: '/embed/properties',
-        destination: '/immobilien/kaufen',
+        source: "/embed/properties",
+        destination: "/immobilien/kaufen",
         permanent: true,
       },
       {
-        source: '/embed/properties/:propertyId',
-        destination: '/immobilien/kaufen/:propertyId',
+        source: "/embed/properties/:propertyId",
+        destination: "/immobilien/kaufen/:propertyId",
         permanent: true,
       },
       {
-        source: '/immobilien/:propertyId(\\d+)',
-        destination: '/immobilien/kaufen/:propertyId',
+        source: "/immobilien/:propertyId(\\d+)",
+        destination: "/immobilien/kaufen/:propertyId",
         permanent: true,
       },
-    ]
+    ];
   },
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'Content-Security-Policy',
+            key: "Content-Security-Policy",
             value: contentSecurityPolicy,
           },
           {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'off',
+            key: "X-DNS-Prefetch-Control",
+            value: "off",
           },
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
           },
         ],
       },
-    ]
+    ];
   },
-}
+};
 
 export default nextConfig
