@@ -13,6 +13,11 @@ const filterSchema = z.object({
   minArea: z.coerce.number().nonnegative().optional(),
   areaType: z.string().trim().min(1).optional(),
   minRooms: z.coerce.number().nonnegative().optional(),
+  zipCode: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, 'zipCode must be a 5-digit German postal code')
+    .optional(),
 })
 
 /**
@@ -52,6 +57,7 @@ export const parseFilters = (
     minArea: parsed.data.minArea,
     areaType,
     minRooms: parsed.data.minRooms,
+    zipCode: parsed.data.zipCode,
   }
 }
 
