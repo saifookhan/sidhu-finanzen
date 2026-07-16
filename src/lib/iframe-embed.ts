@@ -8,6 +8,8 @@ export const IFRAME_PARENT_ORIGINS = [
 
 export const IFRAME_HEIGHT_REPORT_DELAYS_MS = [0, 50, 150, 300, 600, 1000, 2000] as const
 
+let lastReportedHeight = 0
+
 const immobilienDetailPathPattern = /^\/immobilien\/(kaufen|mieten)\/([^/]+)$/
 
 export type IframeNavigationState = {
@@ -80,9 +82,17 @@ const postToParentFrames = (message: Record<string, unknown>): void => {
  * Sends the current document height to allowed WordPress parent frames.
  */
 export const postIframeHeight = (): void => {
+  const height = getIframeDocumentHeight()
+
+  if (height === lastReportedHeight) {
+    return
+  }
+
+  lastReportedHeight = height
+
   postToParentFrames({
     type: IFRAME_RESIZE_MESSAGE_TYPE,
-    height: getIframeDocumentHeight(),
+    height,
   })
 }
 
