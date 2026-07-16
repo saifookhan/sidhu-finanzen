@@ -11,6 +11,37 @@ import type { PropertyImage } from '@/types/property'
 const AUTO_SLIDE_DELAY_MS = 3500
 const VISIBLE_SLIDE_COUNT = 3
 
+type CarouselArrowIconProps = {
+  direction: 'left' | 'right'
+}
+
+/**
+ * Renders a centered chevron icon for slideshow navigation buttons.
+ *
+ * @param direction Arrow direction for previous or next navigation.
+ */
+const CarouselArrowIcon = ({ direction }: CarouselArrowIconProps) => {
+  return (
+    <svg
+      width='20'
+      height='20'
+      viewBox='0 0 24 24'
+      fill='none'
+      stroke='currentColor'
+      strokeWidth='2'
+      strokeLinecap='round'
+      strokeLinejoin='round'
+      aria-hidden='true'
+    >
+      {direction === 'left' ? (
+        <path d='M15 18l-6-6 6-6' />
+      ) : (
+        <path d='M9 18l6-6-6-6' />
+      )}
+    </svg>
+  )
+}
+
 type PropertySlideshowProps = {
   images: PropertyImage[]
   propertyTitle: string
@@ -196,10 +227,10 @@ export const PropertySlideshow = ({
               onClick={() => goToOffset(-1)}
               className={cn(
                 'absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
-                'rounded-full bg-white/90 text-lg text-[#52525b] shadow-md transition hover:bg-white'
+                'rounded-full bg-white/90 text-[#52525b] shadow-md transition hover:bg-white'
               )}
             >
-              ←
+              <CarouselArrowIcon direction='left' />
             </button>
             <button
               type='button'
@@ -207,10 +238,10 @@ export const PropertySlideshow = ({
               onClick={() => goToOffset(1)}
               className={cn(
                 'absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center',
-                'rounded-full bg-white/90 text-lg text-[#52525b] shadow-md transition hover:bg-white'
+                'rounded-full bg-white/90 text-[#52525b] shadow-md transition hover:bg-white'
               )}
             >
-              →
+              <CarouselArrowIcon direction='right' />
             </button>
             <span className='absolute right-3 top-3 z-10 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white'>
               {activeIndex + 1} / {totalImages}
@@ -239,9 +270,9 @@ export const PropertySlideshow = ({
                   event.stopPropagation()
                   goToOffset(-1)
                 }}
-                className='absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white transition hover:bg-white/25'
+                className='absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25'
               >
-                ←
+                <CarouselArrowIcon direction='left' />
               </button>
               <button
                 type='button'
@@ -250,9 +281,9 @@ export const PropertySlideshow = ({
                   event.stopPropagation()
                   goToOffset(1)
                 }}
-                className='absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl text-white transition hover:bg-white/25'
+                className='absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25'
               >
-                →
+                <CarouselArrowIcon direction='right' />
               </button>
             </>
           ) : null}
