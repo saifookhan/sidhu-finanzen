@@ -9,7 +9,12 @@ const envSchema = z.object({
   ONOFFICE_API_USERNAME: z.string().min(1),
   ONOFFICE_API_SECRET: z.string().min(1),
   ONOFFICE_API_TOKEN: z.string().min(1),
-  ALLOWED_IFRAME_ANCESTORS: z.string().default("'self'"),
+
+  ALLOWED_IFRAME_ANCESTORS: z
+    .string()
+    .default(
+      "'self' http://localhost:5500 http://127.0.0.1:5500"
+    ),
 })
 
 /**
@@ -27,14 +32,20 @@ export const getEnv = (): z.infer<typeof envSchema> => {
 
   cachedEnv = envSchema.parse({
     ONOFFICE_API_BASE_URL: process.env.ONOFFICE_API_BASE_URL,
-    ONOFFICE_API_LIST_PATH: process.env.ONOFFICE_API_LIST_PATH ?? '/properties',
+
+    ONOFFICE_API_LIST_PATH: process.env.ONOFFICE_API_LIST_PATH ?? "/properties",
+
     ONOFFICE_API_DETAILS_PATH:
-      process.env.ONOFFICE_API_DETAILS_PATH ?? '/properties/:id',
+      process.env.ONOFFICE_API_DETAILS_PATH ?? "/properties/:id",
+
     ONOFFICE_API_USERNAME: process.env.ONOFFICE_API_USERNAME,
+
     ONOFFICE_API_SECRET: process.env.ONOFFICE_API_SECRET,
+
     ONOFFICE_API_TOKEN: process.env.ONOFFICE_API_TOKEN,
-    ALLOWED_IFRAME_ANCESTORS: process.env.ALLOWED_IFRAME_ANCESTORS ?? "'self'",
-  })
+
+    ALLOWED_IFRAME_ANCESTORS:  "'self' http://localhost:5500 http://127.0.0.1:5500",
+  });
 
   return cachedEnv
 }

@@ -57,7 +57,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/01_Notwendige_Bonitaetsunterlagen.pdf",
+    pdf: "/documents/document-1.pdf",
   },
   {
     title: "Kauf eines Objektes",
@@ -104,7 +104,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/02_Notwendige_Objektunterlagen.pdf",
+    pdf: "/documents/document-2.pdf",
   },
   {
     title: "Neubau",
@@ -155,7 +155,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/03_Notwendige_Objektunterlagen_finanzierende_Bank.pdf",
+    pdf: "/documents/document-3.pdf",
   },
   {
     title: "Wohnungskauf",
@@ -198,7 +198,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/03_Notwendige_Objektunterlagen_finanzierende_Bank_Wohnung.pdf",
+    pdf: "/documents/document-4.pdf",
   },
   {
     title: "Umschuldung eines bestehenden Darlehens",
@@ -245,7 +245,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/05_Notwendige_Objektunterlagen_Umschuldung.pdf",
+    pdf: "/documents/document-5.pdf",
   },
   {
     title: "Privatkredit",
@@ -294,7 +294,7 @@ const services = [
         </p>
       </div>
     ),
-    pdf: "/documents/06_Notwendige_Unterlagen_Privatkredit.pdf",
+    pdf: "/documents/document-6.pdf",
   },
 ];
 

@@ -1,21 +1,41 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
-const defaultFrameAncestors =
-  "'self' https://sidhu-finanzen.de https://www.sidhu-finanzen.de"
+const defaultDevAncestors = [
+  "'self'",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+];
 
-const frameAncestors = process.env.ALLOWED_IFRAME_ANCESTORS ?? defaultFrameAncestors
-const isProduction = process.env.NODE_ENV === 'production'
+const defaultProdAncestors = [
+  "'self'",
+  "https://sidhu-finanzen.de",
+  "https://www.sidhu-finanzen.de",
+];
+
+const isProduction = process.env.NODE_ENV === "production";
+
+const extraAncestors = (process.env.ALLOWED_IFRAME_ANCESTORS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const frameAncestors = [
+  ...(isProduction ? defaultProdAncestors : defaultDevAncestors),
+  ...extraAncestors,
+].join(" ");
 
 const scriptSrc = isProduction
   ? "script-src 'self' 'unsafe-inline'"
-  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 
 const connectSrc = isProduction
   ? "connect-src 'self' https:"
-  : "connect-src 'self' https: http: ws: wss:"
+  : "connect-src 'self' https: http: ws: wss:";
 
 const contentSecurityPolicy = [
-  "default-src 'self'",
+  "default-src 'self' http://localhost:5500 http://127.0.0.1:5500",
   "base-uri 'self'",
   "object-src 'none'",
   scriptSrc,
@@ -30,14 +50,8 @@ const contentSecurityPolicy = [
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "plus.unsplash.com",
-      },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "plus.unsplash.com" },
     ],
   },
   async redirects() {
@@ -64,22 +78,10 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          {
-            key: "Content-Security-Policy",
-            value: contentSecurityPolicy,
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "off",
-          },
+          { key: "Content-Security-Policy", value: contentSecurityPolicy },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-DNS-Prefetch-Control", value: "off" },
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
@@ -90,4 +92,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig
+export default nextConfig;
