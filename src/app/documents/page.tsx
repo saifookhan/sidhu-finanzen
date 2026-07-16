@@ -370,7 +370,7 @@ export default function FinanceServices() {
                         rel="noopener noreferrer"
                         className="inline-flex rounded-lg bg-green-500 px-6 py-3 text-sm font-medium text-white transition hover:bg-green-600"
                       >
-                        PDF herunterladen
+                        PDF öffnen
                       </a>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
-import Image from "next/image";
+import Image from 'next/image'
 import { PropertyCarousel } from '@/components/property-carousel'
 import { PropertyMap } from '@/components/property-map'
 import { PropertyMasonryGallery } from '@/components/property-masonry-gallery'
@@ -99,10 +99,11 @@ export const ImmobilienDetailView = async ({
         />
       </div>
 
-      <div className="px-4 py-8 flex flex-row ">
-        <div className="mx-auto max-w-3xl space-y-6">
-          <article className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_36px_rgba(0,0,0,0.1)]">
-            <div className="space-y-6 p-6 md:p-8">
+      <div className='px-4 py-8'>
+        <div className='mx-auto flex max-w-7xl flex-col gap-8 lg:flex-row lg:items-start'>
+          <div className='min-w-0 flex-1 space-y-6'>
+            <article className='overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_36px_rgba(0,0,0,0.1)]'>
+              <div className='space-y-6 p-6 md:p-8'>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-extrabold leading-tight text-[#18181b] md:text-4xl">
@@ -120,9 +121,8 @@ export const ImmobilienDetailView = async ({
                     <p className="text-xs uppercase tracking-wide text-zinc-500">
                       {LISTING_PRICE_LABELS[listingSegment]}
                     </p>
-                    <p className="text-2xl font-bold text-[#18181b]">
-                      {property.price.toLocaleString("de-DE")}{" "}
-                      {property.currency}
+                    <p className='text-2xl font-bold text-[#18181b]'>
+                      {property.price.toLocaleString('de-DE')} {property.currency}
                     </p>
                   </div>
                   <div>
@@ -138,7 +138,7 @@ export const ImmobilienDetailView = async ({
                       Wohnfläche
                     </p>
                     <p className="text-2xl font-bold text-[#18181b]">
-                      ca. {property.areaSqm.toLocaleString("de-DE")} m²
+                      ca. {property.areaSqm.toLocaleString('de-DE')} m²
                     </p>
                   </div>
                 </div>
@@ -166,7 +166,7 @@ export const ImmobilienDetailView = async ({
                             {amenity.value}
                           </dd>
                         </div>
-                      );
+                      )
                     })}
                   </dl>
                 </DetailSection>
@@ -200,8 +200,8 @@ export const ImmobilienDetailView = async ({
                       <div
                         key={field.label}
                         className={cn(
-                          "grid gap-2 px-4 py-3 text-sm sm:grid-cols-[minmax(0,220px)_1fr]",
-                          "odd:bg-white even:bg-[#f4f4f5]",
+                          'grid gap-2 px-4 py-3 text-sm sm:grid-cols-[minmax(0,220px)_1fr]',
+                          'odd:bg-white even:bg-[#f4f4f5]'
                         )}
                       >
                         <dt className="font-medium text-zinc-600">
@@ -210,9 +210,9 @@ export const ImmobilienDetailView = async ({
                         <dd className="font-medium text-[#18181b]">
                           {field.value}
                         </dd>
-                      </div>
-                    );
-                  })}
+                        </div>
+                      )
+                    })}
                 </dl>
               </DetailSection>
 
@@ -286,51 +286,69 @@ export const ImmobilienDetailView = async ({
               />
             </div>
           </article>
-        </div>
-        <aside>
-          <div className="sticky top-2">
-            <div className="flex flex-col gap-6 rounded-2xl border border-black/10 bg-white p-8 shadow-lg">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Ihr Ansprechpartner
-              </h1>
+          </div>
 
-              <div className="relative h-64 w-64 overflow-hidden rounded-xl shadow-md">
-                <Image
-                  src="/gagandeep-singh-sidhu-finanzberatung.jpg"
-                  alt="Herr Sidhu - Finanzberatung"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+          <aside className='w-full shrink-0 lg:w-80 xl:w-96'>
+            <div className='lg:sticky lg:top-8'>
+              <div className='flex flex-col gap-6 rounded-2xl border border-black/10 bg-white p-6 shadow-lg md:p-8'>
+                <h2 className='text-2xl font-semibold text-[#18181b]'>
+                  Ihr Ansprechpartner
+                </h2>
 
-              <h3 className="text-xl font-medium text-gray-800">
-                Herr Sidhu - Finanzberatung
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                    Email
-                  </h2>
-
-                  <p className="text-gray-700">kontakt@sidhu-finanzen.de</p>
+                <div className='relative mx-auto h-56 w-56 overflow-hidden rounded-xl shadow-md lg:mx-0'>
+                  <Image
+                    src='/gagandeep-singh-sidhu-finanzberatung.jpg'
+                    alt='Herr Sidhu - Finanzberatung'
+                    fill
+                    sizes='(max-width: 1024px) 224px, 320px'
+                    className='object-cover'
+                  />
                 </div>
 
-                <div>
-                  <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                    Mobile
-                  </h2>
+                <h3 className='text-xl font-medium text-zinc-800'>
+                  Herr Sidhu - Finanzberatung
+                </h3>
 
-                  <p className="text-gray-700">+49 40 32 899 063</p>
-                </div>
-                <div className="rounded-md bg-green-500 px-4 py-2 text-center text-white hover:bg-green-600 hover:cursor-pointer">
-                  Exposé anfordern
+                <div className='space-y-4'>
+                  <div>
+                    <p className='text-sm font-semibold uppercase tracking-wide text-zinc-500'>
+                      E-Mail
+                    </p>
+                    <a
+                      href='mailto:kontakt@sidhu-finanzen.de'
+                      className='text-zinc-700 transition hover:text-[#18181b]'
+                    >
+                      kontakt@sidhu-finanzen.de
+                    </a>
+                  </div>
+
+                  <div>
+                    <p className='text-sm font-semibold uppercase tracking-wide text-zinc-500'>
+                      Mobil
+                    </p>
+                    <a
+                      href='tel:+494032899063'
+                      className='text-zinc-700 transition hover:text-[#18181b]'
+                    >
+                      +49 40 32 899 063
+                    </a>
+                  </div>
+
+                  <a
+                    href={`mailto:kontakt@sidhu-finanzen.de?subject=${encodeURIComponent(`Exposé-Anfrage: ${property.title}`)}`}
+                    className={cn(
+                      'block rounded-md bg-green-500 px-4 py-2 text-center text-white transition',
+                      'hover:bg-green-600'
+                    )}
+                  >
+                    Exposé anfordern
+                  </a>
                 </div>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+        </div>
       </div>
     </main>
-  );
+  )
 }

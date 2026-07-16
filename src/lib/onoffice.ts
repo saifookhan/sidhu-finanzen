@@ -544,6 +544,10 @@ const buildEstateFilters = (
     ]
   }
 
+  if (filters.zipCode) {
+    apiFilters.plz = [{ op: '=', val: filters.zipCode }]
+  }
+
   return apiFilters
 }
 
