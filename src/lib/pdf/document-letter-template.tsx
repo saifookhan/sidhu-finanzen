@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 24,
   },
@@ -49,6 +48,7 @@ const styles = StyleSheet.create({
     height: 40,
     width: 118,
     objectFit: 'contain',
+    marginLeft: 116,
   },
   introRow: {
     flexDirection: 'row',
