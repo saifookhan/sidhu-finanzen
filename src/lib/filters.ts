@@ -5,19 +5,37 @@ import { isListingSegment } from '@/lib/listing'
 import type { ListingSegment } from '@/lib/listing'
 import type { PropertyFilters } from '@/types/property'
 
+const optionalStringParam = z.preprocess((value) => {
+  if (typeof value === 'string' && value.trim().length === 0) {
+    return undefined
+  }
+
+  return value
+}, z.string().trim().min(1).optional())
+
+const optionalNumberParam = z.preprocess((value) => {
+  if (typeof value === 'string' && value.trim().length === 0) {
+    return undefined
+  }
+
+  return value
+}, z.coerce.number().nonnegative().optional())
+
 const filterSchema = z.object({
-  objectType: z.string().trim().min(1).optional(),
-  location: z.string().trim().min(1).optional(),
-  minPrice: z.coerce.number().nonnegative().optional(),
-  maxPrice: z.coerce.number().nonnegative().optional(),
-  minArea: z.coerce.number().nonnegative().optional(),
-  areaType: z.string().trim().min(1).optional(),
-  minRooms: z.coerce.number().nonnegative().optional(),
-  zipCode: z
-    .string()
-    .trim()
-    .regex(/^\d{5}$/, 'zipCode must be a 5-digit German postal code')
-    .optional(),
+  objectType: optionalStringParam,
+  location: optionalStringParam,
+  minPrice: optionalNumberParam,
+  maxPrice: optionalNumberParam,
+  minArea: optionalNumberParam,
+  areaType: optionalStringParam,
+  minRooms: optionalNumberParam,
+  zipCode: z.preprocess((value) => {
+    if (typeof value === 'string' && value.trim().length === 0) {
+      return undefined
+    }
+
+    return value
+  }, z.string().trim().regex(/^\d{5}$/, 'zipCode must be a 5-digit German postal code').optional()),
 })
 
 /**
@@ -33,7 +51,15 @@ export const parseFilters = (
   const flatInput: Record<string, string> = {}
 
   for (const [key, value] of Object.entries(searchParams)) {
-    if (typeof value === 'string') {
+    if (Array.isArray(value)) {
+      const firstValue = value.find(
+        (entry): entry is string => typeof entry === 'string' && entry.trim().length > 0
+      )
+
+      if (firstValue) {
+        flatInput[key] = firstValue
+      }
+    } else if (typeof value === 'string') {
       flatInput[key] = value
     }
   }

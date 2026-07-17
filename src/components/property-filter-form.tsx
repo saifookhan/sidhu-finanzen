@@ -1,5 +1,8 @@
 "use client";
 
+import type { FormEvent } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
 import { PriceRangeFilter } from "@/components/price-range-filter";
 import { ZipCodeAutocomplete } from "@/components/zip-code-autocomplete";
 import {
@@ -7,7 +10,6 @@ import {
   LOCATION_OPTIONS,
   OBJECT_TYPE_OPTIONS,
 } from "@/lib/filter-options";
-import { buildListingListPath } from "@/lib/listing";
 import { cn } from "@/lib/utils";
 import type { PropertyFilters } from "@/types/property";
 
@@ -21,6 +23,9 @@ type PropertyFilterFormProps = {
  * @param filters Active filter values from URL.
  */
 export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
+  const router = useRouter();
+  const pathname = usePathname();
+
   const inputClassName = cn(
     "h-10 w-full rounded-md border border-black/15 bg-white px-3 text-sm text-zinc-900",
     "placeholder:text-zinc-500 focus:border-zinc-600 focus:outline-none",
@@ -28,12 +33,25 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
 
   const selectClassName = cn(inputClassName, "appearance-none pr-8");
 
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const params = new URLSearchParams();
+    const formData = new FormData(event.currentTarget);
+
+    formData.forEach((value, key) => {
+      if (value && value.toString().trim()) {
+        params.set(key, value.toString());
+      }
+    });
+
+    router.replace(params.toString() ? `${pathname}?${params}` : pathname, {
+      scroll: false,
+    });
+  };
+
   return (
-    <form
-      method="GET"
-      action={buildListingListPath(filters.listingSegment)}
-      className="space-y-4 rounded-xl border border-sidhu-border bg-white p-4"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-sidhu-border bg-white p-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <fieldset className="space-y-2">
           <legend className="text-xs font-medium uppercase tracking-[0.12em] text-sidhu-meta">
