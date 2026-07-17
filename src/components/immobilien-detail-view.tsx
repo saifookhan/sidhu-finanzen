@@ -100,7 +100,7 @@ export const ImmobilienDetailView = async ({
       </div>
 
       <div className='px-4 py-8'>
-        <div className='mx-auto flex max-w-7xl flex-col gap-8 lg:flex-row lg:items-start'>
+        <div className='mx-auto flex max-w-7xl flex-col gap-8 lg:flex-row '>
           <div className='min-w-0 flex-1 space-y-6'>
             <article className='overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_36px_rgba(0,0,0,0.1)]'>
               <div className='space-y-6 p-6 md:p-8'>
