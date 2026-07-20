@@ -52,6 +52,7 @@ const styles = StyleSheet.create({
     height: 40,
     width: 118,
     objectFit: 'contain',
+    marginLeft: 145,
   },
   introRow: {
     flexDirection: 'row',
