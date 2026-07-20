@@ -89,11 +89,6 @@
         if (currentUrl === nextUrl) return
         window.history.pushState({ propertyId: event.data.propertyId }, '', nextUrl)
       }
-
-      if (event.data.type === 'sidhu-iframe-lightbox') {
-        document.documentElement.style.overflow = event.data.isOpen ? 'hidden' : ''
-        document.body.style.overflow = event.data.isOpen ? 'hidden' : ''
-      }
     })
 
     window.addEventListener('popstate', syncIframeFromParentUrl)

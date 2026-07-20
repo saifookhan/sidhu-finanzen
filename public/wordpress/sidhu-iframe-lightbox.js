@@ -7,6 +7,73 @@
 ;(function (global) {
   var LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
   var LIGHTBOX_CLOSE_MESSAGE_TYPE = 'sidhu-iframe-lightbox-close'
+  var LIGHTBOX_HOST_ID = 'sidhu-parent-lightbox-host'
+
+  var LIGHTBOX_STYLES = [
+    ':host { all: initial; }',
+    '.overlay {',
+    '  position: fixed;',
+    '  inset: 0;',
+    '  z-index: 2147483646;',
+    '  display: flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  background: rgba(0, 0, 0, 0.85);',
+    '  padding: 16px;',
+    '  box-sizing: border-box;',
+    '}',
+    '.content {',
+    '  display: flex;',
+    '  max-height: 90vh;',
+    '  max-width: min(1024px, 100%);',
+    '  flex-direction: column;',
+    '  align-items: center;',
+    '  gap: 12px;',
+    '}',
+    '.image {',
+    '  max-height: 80vh;',
+    '  width: auto;',
+    '  max-width: 100%;',
+    '  border-radius: 8px;',
+    '  object-fit: contain;',
+    '}',
+    '.caption {',
+    '  margin: 0;',
+    '  font: 400 14px/1.4 Arial, Helvetica, sans-serif;',
+    '  color: rgba(255, 255, 255, 0.8);',
+    '}',
+    '.control {',
+    '  all: unset;',
+    '  box-sizing: border-box;',
+    '  display: flex;',
+    '  align-items: center;',
+    '  justify-content: center;',
+    '  cursor: pointer;',
+    '  border-radius: 9999px;',
+    '  background: rgba(255, 255, 255, 0.15);',
+    '  color: #fff;',
+    '  transition: background 0.15s ease;',
+    '}',
+    '.control:hover { background: rgba(255, 255, 255, 0.25); }',
+    '.close {',
+    '  position: absolute;',
+    '  top: 16px;',
+    '  right: 16px;',
+    '  width: 40px;',
+    '  height: 40px;',
+    '  font: 400 28px/1 Arial, Helvetica, sans-serif;',
+    '}',
+    '.previous, .next {',
+    '  position: absolute;',
+    '  top: 50%;',
+    '  transform: translateY(-50%);',
+    '  width: 48px;',
+    '  height: 48px;',
+    '  font: 400 24px/1 Arial, Helvetica, sans-serif;',
+    '}',
+    '.previous { left: 16px; }',
+    '.next { right: 16px; }',
+  ].join('')
 
   /**
    * Locks or restores scrolling on the parent WordPress page.
@@ -26,7 +93,11 @@
    * @returns {{ destroy: () => void }}
    */
   var createController = function (iframe, appOrigin) {
+    var host = null
+    var shadowRoot = null
     var overlay = null
+    var keydownHandler = null
+    var isClosing = false
     var state = {
       images: [],
       activeIndex: 0,
@@ -37,13 +108,20 @@
      * Removes the parent lightbox overlay from the DOM.
      */
     var removeOverlay = function () {
-      if (!overlay) {
-        return
+      if (keydownHandler) {
+        document.removeEventListener('keydown', keydownHandler)
+        keydownHandler = null
       }
 
-      overlay.remove()
+      if (host) {
+        host.remove()
+        host = null
+      }
+
+      shadowRoot = null
       overlay = null
       setParentScrollLock(false)
+      isClosing = false
     }
 
     /**
@@ -66,6 +144,11 @@
      * Closes the parent lightbox and syncs state back to the iframe.
      */
     var closeLightbox = function () {
+      if (isClosing || !overlay) {
+        return
+      }
+
+      isClosing = true
       removeOverlay()
       notifyIframeClosed()
     }
@@ -112,18 +195,18 @@
     }
 
     /**
-     * Creates a circular lightbox control button.
+     * Creates a circular lightbox control button inside the shadow root.
      *
      * @param {string} label Accessible button label.
      * @param {string} content Button content.
-     * @param {string} className Additional CSS classes.
+     * @param {string} className Lightbox control class name.
      * @returns {HTMLButtonElement} Configured button element.
      */
     var createButton = function (label, content, className) {
       var button = document.createElement('button')
       button.type = 'button'
       button.setAttribute('aria-label', label)
-      button.className = className
+      button.className = 'control ' + className
       button.innerHTML = content
       return button
     }
@@ -135,29 +218,23 @@
       removeOverlay()
       setParentScrollLock(true)
 
+      host = document.createElement('div')
+      host.id = LIGHTBOX_HOST_ID
+      host.style.cssText = 'position: fixed; inset: 0; z-index: 2147483646;'
+      shadowRoot = host.attachShadow({ mode: 'open' })
+
+      var styleElement = document.createElement('style')
+      styleElement.textContent = LIGHTBOX_STYLES
+      shadowRoot.appendChild(styleElement)
+
       overlay = document.createElement('div')
+      overlay.className = 'overlay'
       overlay.setAttribute('role', 'dialog')
       overlay.setAttribute('aria-modal', 'true')
       overlay.setAttribute('aria-label', 'Bildergalerie Vollbild')
-      overlay.style.cssText = [
-        'position:fixed',
-        'inset:0',
-        'z-index:999999',
-        'display:flex',
-        'align-items:center',
-        'justify-content:center',
-        'background:rgba(0,0,0,0.85)',
-        'padding:16px',
-        'box-sizing:border-box',
-      ].join(';')
-
       overlay.addEventListener('click', closeLightbox)
 
-      var closeButton = createButton(
-        'Galerie schließen',
-        '&times;',
-        'position:absolute;top:16px;right:16px;width:40px;height:40px;border:0;border-radius:9999px;background:rgba(255,255,255,0.15);color:#fff;font-size:28px;line-height:1;cursor:pointer;'
-      )
+      var closeButton = createButton('Galerie schließen', '&times;', 'close')
       closeButton.addEventListener('click', function (event) {
         event.stopPropagation()
         closeLightbox()
@@ -165,22 +242,14 @@
       overlay.appendChild(closeButton)
 
       if (state.images.length > 1) {
-        var previousButton = createButton(
-          'Vorheriges Bild',
-          '&#8592;',
-          'position:absolute;left:16px;top:50%;transform:translateY(-50%);width:48px;height:48px;border:0;border-radius:9999px;background:rgba(255,255,255,0.15);color:#fff;font-size:24px;cursor:pointer;'
-        )
+        var previousButton = createButton('Vorheriges Bild', '&#8592;', 'previous')
         previousButton.addEventListener('click', function (event) {
           event.stopPropagation()
           goToOffset(-1)
         })
         overlay.appendChild(previousButton)
 
-        var nextButton = createButton(
-          'Nächstes Bild',
-          '&#8594;',
-          'position:absolute;right:16px;top:50%;transform:translateY(-50%);width:48px;height:48px;border:0;border-radius:9999px;background:rgba(255,255,255,0.15);color:#fff;font-size:24px;cursor:pointer;'
-        )
+        var nextButton = createButton('Nächstes Bild', '&#8594;', 'next')
         nextButton.addEventListener('click', function (event) {
           event.stopPropagation()
           goToOffset(1)
@@ -189,25 +258,24 @@
       }
 
       var content = document.createElement('div')
-      content.style.cssText =
-        'display:flex;max-height:90vh;max-width:min(1024px,100%);flex-direction:column;align-items:center;gap:12px;'
+      content.className = 'content'
       content.addEventListener('click', function (event) {
         event.stopPropagation()
       })
 
       var imageElement = document.createElement('img')
+      imageElement.className = 'image'
       imageElement.setAttribute('data-sidhu-lightbox-image', 'true')
-      imageElement.style.cssText =
-        'max-height:80vh;width:auto;max-width:100%;border-radius:8px;object-fit:contain;'
       content.appendChild(imageElement)
 
       var captionElement = document.createElement('p')
+      captionElement.className = 'caption'
       captionElement.setAttribute('data-sidhu-lightbox-caption', 'true')
-      captionElement.style.cssText = 'margin:0;font-size:14px;color:rgba(255,255,255,0.8);'
       content.appendChild(captionElement)
 
       overlay.appendChild(content)
-      document.body.appendChild(overlay)
+      shadowRoot.appendChild(overlay)
+      document.body.appendChild(host)
       renderActiveImage()
 
       /**
@@ -215,7 +283,7 @@
        *
        * @param {KeyboardEvent} event Keyboard event from the parent document.
        */
-      var handleKeyDown = function (event) {
+      keydownHandler = function (event) {
         if (!overlay) {
           return
         }
@@ -233,9 +301,7 @@
         }
       }
 
-      document.addEventListener('keydown', handleKeyDown)
-      overlay.dataset.keydownAttached = 'true'
-      overlay.sidhuKeydownHandler = handleKeyDown
+      document.addEventListener('keydown', keydownHandler)
     }
 
     /**
@@ -253,9 +319,6 @@
       }
 
       if (!event.data.isOpen) {
-        if (overlay && overlay.sidhuKeydownHandler) {
-          document.removeEventListener('keydown', overlay.sidhuKeydownHandler)
-        }
         removeOverlay()
         return
       }
@@ -281,11 +344,6 @@
     return {
       destroy: function () {
         global.removeEventListener('message', handleMessage)
-
-        if (overlay && overlay.sidhuKeydownHandler) {
-          document.removeEventListener('keydown', overlay.sidhuKeydownHandler)
-        }
-
         removeOverlay()
       },
     }

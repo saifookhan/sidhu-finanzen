@@ -128,25 +128,10 @@ export const postIframeNavigation = (pathname: string): void => {
 }
 
 /**
- * Returns whether the app is running inside an allowed WordPress iframe embed.
+ * Returns whether the app is running inside a parent iframe embed.
  */
 export const isIframeEmbedded = (): boolean => {
-  if (typeof window === 'undefined' || window.self === window.top) {
-    return false
-  }
-
-  if (typeof document === 'undefined' || document.referrer === '') {
-    return true
-  }
-
-  try {
-    const referrerOrigin = new URL(document.referrer).origin
-    return IFRAME_PARENT_ORIGINS.includes(
-      referrerOrigin as (typeof IFRAME_PARENT_ORIGINS)[number]
-    )
-  } catch {
-    return true
-  }
+  return typeof window !== 'undefined' && window.self !== window.top
 }
 
 /**

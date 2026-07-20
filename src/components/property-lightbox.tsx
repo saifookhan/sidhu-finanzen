@@ -43,9 +43,10 @@ export const PropertyLightbox = ({
   iframePropertyTitle = '',
 }: PropertyLightboxProps) => {
   const [isMounted, setIsMounted] = useState(false)
-  const viewportRect = useVisualViewportRect(isOpen)
+  const [isEmbedded] = useState(isIframeEmbedded)
+  const viewportRect = useVisualViewportRect(isOpen && !isEmbedded)
   const usesParentLightbox =
-    isIframeEmbedded() && Array.isArray(iframeImages) && iframeImages.length > 0
+    isEmbedded && Array.isArray(iframeImages) && iframeImages.length > 0
 
   useEffect(() => {
     setIsMounted(true)
@@ -124,7 +125,7 @@ export const PropertyLightbox = ({
   }, [onClose, usesParentLightbox])
 
   useEffect(() => {
-    if (!isOpen || usesParentLightbox) {
+    if (!isOpen || usesParentLightbox || isEmbedded) {
       return
     }
 
@@ -138,9 +139,9 @@ export const PropertyLightbox = ({
       document.documentElement.style.overflow = previousHtmlOverflow
       document.body.style.overflow = previousBodyOverflow
     }
-  }, [isOpen, usesParentLightbox])
+  }, [isEmbedded, isOpen, usesParentLightbox])
 
-  if (!isMounted || !isOpen || usesParentLightbox) {
+  if (!isMounted || !isOpen || usesParentLightbox || isEmbedded) {
     return null
   }
 
