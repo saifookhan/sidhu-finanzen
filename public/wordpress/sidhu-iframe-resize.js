@@ -135,7 +135,7 @@
   }
 
   var lightboxScript = document.createElement('script')
-  lightboxScript.src = appOrigin + '/wordpress/sidhu-iframe-lightbox.js?v=4'
+  lightboxScript.src = appOrigin + '/wordpress/sidhu-iframe-lightbox.js?v=5'
   lightboxScript.async = false
   document.head.appendChild(lightboxScript)
 })(window)

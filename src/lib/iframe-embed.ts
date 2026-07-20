@@ -133,7 +133,7 @@ export const postIframeNavigation = (pathname: string): void => {
  *
  * @param durationMs Suppression window in milliseconds.
  */
-export const suppressIframeLightboxOpen = (durationMs = 400): void => {
+export const suppressIframeLightboxOpen = (durationMs = 700): void => {
   lightboxSuppressOpenUntil = Date.now() + durationMs
 }
 

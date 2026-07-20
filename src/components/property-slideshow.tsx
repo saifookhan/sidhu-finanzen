@@ -2,10 +2,10 @@
 
 import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { PropertyLightbox } from '@/components/property-lightbox'
-import { isIframeEmbedded, isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
+import { isIframeEmbedded, isIframeLightboxOpenSuppressed, suppressIframeLightboxOpen } from '@/lib/iframe-embed'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
@@ -75,6 +75,14 @@ export const PropertySlideshow = ({
   const totalImages = images.length
   const visibleSlideCount = Math.min(VISIBLE_SLIDE_COUNT, totalImages)
   const activeImage = images[activeIndex]
+  const iframeImages = useMemo(
+    () =>
+      images.map((image) => ({
+        url: image.url,
+        title: image.title,
+      })),
+    [images]
+  )
 
   /**
    * Moves to another image by offset, wrapping at the ends.
@@ -119,6 +127,7 @@ export const PropertySlideshow = ({
    * Closes the fullscreen lightbox popup.
    */
   const closeLightbox = useCallback(() => {
+    suppressIframeLightboxOpen()
     setIsLightboxOpen(false)
   }, [])
 
@@ -259,10 +268,7 @@ export const PropertySlideshow = ({
         <PropertyLightbox
           isOpen={isLightboxOpen}
           onClose={closeLightbox}
-          iframeImages={images.map((image) => ({
-            url: image.url,
-            title: image.title,
-          }))}
+          iframeImages={iframeImages}
           iframeActiveIndex={activeIndex}
           iframePropertyTitle={propertyTitle}
         >

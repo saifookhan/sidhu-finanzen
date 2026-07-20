@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 import { useVisualViewportRect } from '@/hooks/use-visual-viewport-rect'
@@ -21,6 +21,31 @@ type PropertyLightboxProps = {
   iframeImages?: IframeLightboxImage[]
   iframeActiveIndex?: number
   iframePropertyTitle?: string
+}
+
+/**
+ * Builds a stable postMessage key for parent lightbox state deduplication.
+ *
+ * @param isOpen Whether the lightbox is open.
+ * @param iframeImages Serializable gallery images.
+ * @param iframeActiveIndex Active image index.
+ * @param iframePropertyTitle Property title for captions.
+ */
+const buildLightboxPostKey = (
+  isOpen: boolean,
+  iframeImages: IframeLightboxImage[] | undefined,
+  iframeActiveIndex: number,
+  iframePropertyTitle: string
+): string => {
+  if (!isOpen) {
+    return 'closed'
+  }
+
+  return JSON.stringify({
+    activeIndex: iframeActiveIndex,
+    images: iframeImages ?? [],
+    propertyTitle: iframePropertyTitle,
+  })
 }
 
 /**
@@ -45,6 +70,7 @@ export const PropertyLightbox = ({
 }: PropertyLightboxProps) => {
   const [isMounted, setIsMounted] = useState(false)
   const [isEmbedded] = useState(isIframeEmbedded)
+  const lastPostedKeyRef = useRef<string | null>(null)
   const viewportRect = useVisualViewportRect(isOpen && !isEmbedded)
   const usesParentLightbox =
     isEmbedded && Array.isArray(iframeImages) && iframeImages.length > 0
@@ -57,6 +83,19 @@ export const PropertyLightbox = ({
     if (!usesParentLightbox) {
       return
     }
+
+    const nextKey = buildLightboxPostKey(
+      isOpen,
+      iframeImages,
+      iframeActiveIndex,
+      iframePropertyTitle
+    )
+
+    if (lastPostedKeyRef.current === nextKey) {
+      return
+    }
+
+    lastPostedKeyRef.current = nextKey
 
     if (!isOpen) {
       postIframeLightboxState({ isOpen: false })
@@ -83,6 +122,7 @@ export const PropertyLightbox = ({
     }
 
     return () => {
+      lastPostedKeyRef.current = 'closed'
       postIframeLightboxState({ isOpen: false })
     }
   }, [usesParentLightbox])
@@ -115,7 +155,8 @@ export const PropertyLightbox = ({
         return
       }
 
-      suppressIframeLightboxOpen()
+      lastPostedKeyRef.current = 'closed'
+      suppressIframeLightboxOpen(700)
       onClose()
     }
 

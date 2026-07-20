@@ -1,9 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { PropertyLightbox } from '@/components/property-lightbox'
-import { isIframeEmbedded, isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
+import { isIframeEmbedded, isIframeLightboxOpenSuppressed, suppressIframeLightboxOpen } from '@/lib/iframe-embed'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
@@ -26,6 +26,14 @@ export const PropertyMasonryGallery = ({
 
   const totalImages = images.length
   const activeImage = activeIndex === null ? null : images[activeIndex]
+  const iframeImages = useMemo(
+    () =>
+      images.map((image) => ({
+        url: image.url,
+        title: image.title,
+      })),
+    [images]
+  )
 
   /**
    * Moves to another image by offset, wrapping at the ends.
@@ -66,6 +74,7 @@ export const PropertyMasonryGallery = ({
    * Closes the fullscreen lightbox popup.
    */
   const closeLightbox = useCallback(() => {
+    suppressIframeLightboxOpen()
     setActiveIndex(null)
   }, [])
 
@@ -153,10 +162,7 @@ export const PropertyMasonryGallery = ({
         <PropertyLightbox
           isOpen={activeIndex !== null}
           onClose={closeLightbox}
-          iframeImages={images.map((image) => ({
-            url: image.url,
-            title: image.title,
-          }))}
+          iframeImages={iframeImages}
           iframeActiveIndex={activeIndex}
           iframePropertyTitle={propertyTitle}
         >

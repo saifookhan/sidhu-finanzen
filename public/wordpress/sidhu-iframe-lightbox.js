@@ -118,6 +118,8 @@
     var overlay = null
     var keydownHandler = null
     var isOpen = false
+    var suppressOpenUntil = 0
+    var pointerRestoreTimer = 0
     var state = {
       images: [],
       activeIndex: 0,
@@ -136,10 +138,15 @@
     /**
      * Removes the parent lightbox overlay from the DOM.
      */
-    var removeOverlay = function () {
+    var removeOverlay = function (restoreIframePointer) {
       if (keydownHandler) {
         document.removeEventListener('keydown', keydownHandler, true)
         keydownHandler = null
+      }
+
+      if (pointerRestoreTimer) {
+        global.clearTimeout(pointerRestoreTimer)
+        pointerRestoreTimer = 0
       }
 
       if (host) {
@@ -151,8 +158,11 @@
       overlay = null
       isOpen = false
       setParentScrollLock(false)
-      setIframePointerEvents(true)
       removeStaleHosts()
+
+      if (restoreIframePointer !== false) {
+        setIframePointerEvents(true)
+      }
     }
 
     /**
@@ -180,6 +190,7 @@
       }
 
       isOpen = false
+      suppressOpenUntil = Date.now() + 800
 
       if (host) {
         host.style.pointerEvents = 'none'
@@ -187,9 +198,13 @@
       }
 
       setParentScrollLock(false)
-      setIframePointerEvents(true)
       notifyIframeClosed()
-      removeOverlay()
+      removeOverlay(false)
+
+      pointerRestoreTimer = global.setTimeout(function () {
+        setIframePointerEvents(true)
+        pointerRestoreTimer = 0
+      }, 700)
     }
 
     /**
@@ -370,7 +385,12 @@
       }
 
       if (!event.data.isOpen) {
+        suppressOpenUntil = Date.now() + 800
         closeLightbox()
+        return
+      }
+
+      if (Date.now() < suppressOpenUntil) {
         return
       }
 
