@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { PropertyLightbox } from '@/components/property-lightbox'
+import { isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
@@ -54,6 +55,10 @@ export const PropertyMasonryGallery = ({
    * @param index Image index to display in the popup.
    */
   const openLightbox = useCallback((index: number) => {
+    if (isIframeLightboxOpenSuppressed()) {
+      return
+    }
+
     setActiveIndex(index)
   }, [])
 

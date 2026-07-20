@@ -4,8 +4,9 @@ import Autoplay from 'embla-carousel-autoplay'
 import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
 
-import { cn } from '@/lib/utils'
 import { PropertyLightbox } from '@/components/property-lightbox'
+import { isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
+import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
 const AUTO_SLIDE_DELAY_MS = 3500
@@ -103,6 +104,10 @@ export const PropertySlideshow = ({
    */
   const openLightbox = useCallback(
     (index: number) => {
+      if (isIframeLightboxOpenSuppressed()) {
+        return
+      }
+
       emblaApi?.scrollTo(index)
       setActiveIndex(index)
       setIsLightboxOpen(true)

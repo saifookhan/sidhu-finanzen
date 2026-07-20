@@ -10,6 +10,7 @@ import {
   type IframeLightboxImage,
   isIframeEmbedded,
   postIframeLightboxState,
+  suppressIframeLightboxOpen,
 } from '@/lib/iframe-embed'
 
 type PropertyLightboxProps = {
@@ -114,6 +115,7 @@ export const PropertyLightbox = ({
         return
       }
 
+      suppressIframeLightboxOpen()
       onClose()
     }
 

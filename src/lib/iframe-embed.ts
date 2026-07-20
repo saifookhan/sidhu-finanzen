@@ -23,6 +23,7 @@ export const IFRAME_PARENT_ORIGINS = [
 export const IFRAME_HEIGHT_REPORT_DELAYS_MS = [0, 50, 150, 300, 600, 1000, 2000] as const
 
 let lastReportedHeight = 0
+let lightboxSuppressOpenUntil = 0
 
 const immobilienDetailPathPattern = /^\/immobilien\/(kaufen|mieten)\/([^/]+)$/
 
@@ -125,6 +126,22 @@ export const postIframeNavigation = (pathname: string): void => {
     propertyId: navigation.propertyId,
     url: `${window.location.origin}${pathname}`,
   })
+}
+
+/**
+ * Temporarily blocks gallery open actions to prevent click-through reopen loops.
+ *
+ * @param durationMs Suppression window in milliseconds.
+ */
+export const suppressIframeLightboxOpen = (durationMs = 400): void => {
+  lightboxSuppressOpenUntil = Date.now() + durationMs
+}
+
+/**
+ * Returns whether gallery open actions should be ignored.
+ */
+export const isIframeLightboxOpenSuppressed = (): boolean => {
+  return Date.now() < lightboxSuppressOpenUntil
 }
 
 /**

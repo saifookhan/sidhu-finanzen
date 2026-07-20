@@ -105,6 +105,15 @@
     }
 
     /**
+     * Enables or disables pointer interaction with the embedded iframe.
+     *
+     * @param {boolean} enabled Whether the iframe should receive pointer events.
+     */
+    var setIframePointerEvents = function (enabled) {
+      iframe.style.pointerEvents = enabled ? '' : 'none'
+    }
+
+    /**
      * Removes the parent lightbox overlay from the DOM.
      */
     var removeOverlay = function () {
@@ -121,6 +130,7 @@
       shadowRoot = null
       overlay = null
       setParentScrollLock(false)
+      setIframePointerEvents(true)
       isClosing = false
     }
 
@@ -149,8 +159,13 @@
       }
 
       isClosing = true
-      removeOverlay()
       notifyIframeClosed()
+
+      global.requestAnimationFrame(function () {
+        global.requestAnimationFrame(function () {
+          removeOverlay()
+        })
+      })
     }
 
     /**
@@ -217,6 +232,7 @@
     var renderOverlay = function () {
       removeOverlay()
       setParentScrollLock(true)
+      setIframePointerEvents(false)
 
       host = document.createElement('div')
       host.id = LIGHTBOX_HOST_ID
