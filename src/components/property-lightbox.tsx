@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+
+import { useVisualViewportRect } from '@/hooks/use-visual-viewport-rect'
+import { postIframeLightboxState } from '@/lib/iframe-embed'
 
 type PropertyLightboxProps = {
   isOpen: boolean
@@ -25,6 +28,7 @@ export const PropertyLightbox = ({
   ariaLabel = 'Bildergalerie Vollbild',
 }: PropertyLightboxProps) => {
   const [isMounted, setIsMounted] = useState(false)
+  const viewportRect = useVisualViewportRect(isOpen)
 
   useEffect(() => {
     setIsMounted(true)
@@ -40,10 +44,12 @@ export const PropertyLightbox = ({
 
     document.documentElement.style.overflow = 'hidden'
     document.body.style.overflow = 'hidden'
+    postIframeLightboxState(true)
 
     return () => {
       document.documentElement.style.overflow = previousHtmlOverflow
       document.body.style.overflow = previousBodyOverflow
+      postIframeLightboxState(false)
     }
   }, [isOpen])
 
@@ -51,9 +57,17 @@ export const PropertyLightbox = ({
     return null
   }
 
+  const overlayStyle: CSSProperties = {
+    top: viewportRect.top,
+    left: viewportRect.left,
+    width: viewportRect.width || '100vw',
+    height: viewportRect.height || '100dvh',
+  }
+
   return createPortal(
     <div
-      className='fixed inset-0 z-[9999] flex h-[100dvh] w-screen items-center justify-center bg-black/85 p-4'
+      className='fixed z-[9999] flex items-center justify-center bg-black/85 p-4'
+      style={overlayStyle}
       role='dialog'
       aria-modal='true'
       aria-label={ariaLabel}

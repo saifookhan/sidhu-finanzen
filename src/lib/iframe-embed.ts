@@ -1,5 +1,6 @@
 export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
 export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
+export const IFRAME_LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
 
 export const IFRAME_PARENT_ORIGINS = [
   'https://sidhu-finanzen.de',
@@ -110,6 +111,18 @@ export const postIframeNavigation = (pathname: string): void => {
     listingSegment: navigation.listingSegment,
     propertyId: navigation.propertyId,
     url: `${window.location.origin}${pathname}`,
+  })
+}
+
+/**
+ * Notifies the WordPress parent when a fullscreen lightbox opens or closes.
+ *
+ * @param isOpen Whether the lightbox is currently visible.
+ */
+export const postIframeLightboxState = (isOpen: boolean): void => {
+  postToParentFrames({
+    type: IFRAME_LIGHTBOX_MESSAGE_TYPE,
+    isOpen,
   })
 }
 
