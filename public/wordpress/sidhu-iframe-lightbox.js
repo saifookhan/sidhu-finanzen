@@ -5,7 +5,14 @@
  * in the browser viewport instead of the iframe document.
  */
 ;(function (global) {
-  var LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
+  if (global.__sidhuIframeLightboxInitialized) {
+    return
+  }
+
+  global.__sidhuIframeLightboxInitialized = true
+
+  var LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox-v2'
+  var LEGACY_LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
   var LIGHTBOX_CLOSE_MESSAGE_TYPE = 'sidhu-iframe-lightbox-close'
   var LIGHTBOX_HOST_ID = 'sidhu-parent-lightbox-host'
 
@@ -81,8 +88,21 @@
    * @param {boolean} isLocked Whether page scrolling should be disabled.
    */
   var setParentScrollLock = function (isLocked) {
-    document.documentElement.style.overflow = isLocked ? 'hidden' : ''
-    document.body.style.overflow = isLocked ? 'hidden' : ''
+    var value = isLocked ? 'hidden' : ''
+
+    document.documentElement.style.setProperty('overflow', value, 'important')
+    document.body.style.setProperty('overflow', value, 'important')
+  }
+
+  /**
+   * Removes any stale lightbox host nodes left in the document.
+   */
+  var removeStaleHosts = function () {
+    var staleHosts = document.querySelectorAll('#' + LIGHTBOX_HOST_ID)
+
+    for (var index = 0; index < staleHosts.length; index += 1) {
+      staleHosts[index].remove()
+    }
   }
 
   /**
@@ -97,7 +117,7 @@
     var shadowRoot = null
     var overlay = null
     var keydownHandler = null
-    var isClosing = false
+    var isOpen = false
     var state = {
       images: [],
       activeIndex: 0,
@@ -118,7 +138,7 @@
      */
     var removeOverlay = function () {
       if (keydownHandler) {
-        document.removeEventListener('keydown', keydownHandler)
+        document.removeEventListener('keydown', keydownHandler, true)
         keydownHandler = null
       }
 
@@ -129,9 +149,10 @@
 
       shadowRoot = null
       overlay = null
+      isOpen = false
       setParentScrollLock(false)
       setIframePointerEvents(true)
-      isClosing = false
+      removeStaleHosts()
     }
 
     /**
@@ -154,18 +175,21 @@
      * Closes the parent lightbox and syncs state back to the iframe.
      */
     var closeLightbox = function () {
-      if (isClosing || !overlay) {
+      if (!isOpen) {
         return
       }
 
-      isClosing = true
-      notifyIframeClosed()
+      isOpen = false
 
-      global.requestAnimationFrame(function () {
-        global.requestAnimationFrame(function () {
-          removeOverlay()
-        })
-      })
+      if (host) {
+        host.style.pointerEvents = 'none'
+        host.style.opacity = '0'
+      }
+
+      setParentScrollLock(false)
+      setIframePointerEvents(true)
+      notifyIframeClosed()
+      removeOverlay()
     }
 
     /**
@@ -231,6 +255,8 @@
      */
     var renderOverlay = function () {
       removeOverlay()
+      removeStaleHosts()
+      isOpen = true
       setParentScrollLock(true)
       setIframePointerEvents(false)
 
@@ -252,6 +278,7 @@
 
       var closeButton = createButton('Galerie schließen', '&times;', 'close')
       closeButton.addEventListener('click', function (event) {
+        event.preventDefault()
         event.stopPropagation()
         closeLightbox()
       })
@@ -260,6 +287,7 @@
       if (state.images.length > 1) {
         var previousButton = createButton('Vorheriges Bild', '&#8592;', 'previous')
         previousButton.addEventListener('click', function (event) {
+          event.preventDefault()
           event.stopPropagation()
           goToOffset(-1)
         })
@@ -267,6 +295,7 @@
 
         var nextButton = createButton('Nächstes Bild', '&#8594;', 'next')
         nextButton.addEventListener('click', function (event) {
+          event.preventDefault()
           event.stopPropagation()
           goToOffset(1)
         })
@@ -300,24 +329,27 @@
        * @param {KeyboardEvent} event Keyboard event from the parent document.
        */
       keydownHandler = function (event) {
-        if (!overlay) {
+        if (!isOpen) {
           return
         }
 
         if (event.key === 'Escape') {
+          event.preventDefault()
           closeLightbox()
         }
 
         if (event.key === 'ArrowLeft') {
+          event.preventDefault()
           goToOffset(-1)
         }
 
         if (event.key === 'ArrowRight') {
-          goToOffset(1)
+          event.preventDefault()
+          goToOffset(+1)
         }
       }
 
-      document.addEventListener('keydown', keydownHandler)
+      document.addEventListener('keydown', keydownHandler, true)
     }
 
     /**
@@ -330,12 +362,15 @@
         return
       }
 
-      if (event.data.type !== LIGHTBOX_MESSAGE_TYPE) {
+      if (
+        event.data.type !== LIGHTBOX_MESSAGE_TYPE &&
+        event.data.type !== LEGACY_LIGHTBOX_MESSAGE_TYPE
+      ) {
         return
       }
 
       if (!event.data.isOpen) {
-        removeOverlay()
+        closeLightbox()
         return
       }
 
@@ -347,7 +382,7 @@
         return
       }
 
-      if (overlay) {
+      if (isOpen && overlay) {
         renderActiveImage()
         return
       }
@@ -360,7 +395,7 @@
     return {
       destroy: function () {
         global.removeEventListener('message', handleMessage)
-        removeOverlay()
+        closeLightbox()
       },
     }
   }

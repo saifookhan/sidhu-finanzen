@@ -1,6 +1,6 @@
 export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
 export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
-export const IFRAME_LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
+export const IFRAME_LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox-v2'
 export const IFRAME_LIGHTBOX_CLOSE_MESSAGE_TYPE = 'sidhu-iframe-lightbox-close'
 
 export type IframeLightboxImage = {

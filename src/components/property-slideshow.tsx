@@ -5,7 +5,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { useCallback, useEffect, useState } from 'react'
 
 import { PropertyLightbox } from '@/components/property-lightbox'
-import { isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
+import { isIframeEmbedded, isIframeLightboxOpenSuppressed } from '@/lib/iframe-embed'
 import { cn } from '@/lib/utils'
 import type { PropertyImage } from '@/types/property'
 
@@ -143,7 +143,7 @@ export const PropertySlideshow = ({
   }, [emblaApi])
 
   useEffect(() => {
-    if (!isLightboxOpen) {
+    if (!isLightboxOpen || isIframeEmbedded()) {
       return
     }
 
