@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+import { clickParentLightboxBackdrop, clickParentLightboxClose } from './lightbox-helpers'
+
 test.describe('WordPress iframe lightbox – real clicks', () => {
   test('masonry image: real mouse close does not reopen', async ({ page }) => {
     await page.goto('https://sidhu-finanzen.de/immobilien-kaufen/?immobilie=53', {
@@ -15,13 +17,7 @@ test.describe('WordPress iframe lightbox – real clicks', () => {
     await masonryButton.click({ timeout: 60_000, force: true })
     await expect(page.locator('#sidhu-parent-lightbox-host')).toHaveCount(1)
 
-    const hostBox = await page.locator('#sidhu-parent-lightbox-host').boundingBox()
-    expect(hostBox).toBeTruthy()
-
-    // Real mouse click on backdrop area (not on image center)
-    if (hostBox) {
-      await page.mouse.click(hostBox.x + 20, hostBox.y + hostBox.height / 2)
-    }
+    await clickParentLightboxBackdrop(page)
 
     await page.waitForTimeout(500)
     await expect(page.locator('#sidhu-parent-lightbox-host')).toHaveCount(0)
@@ -44,17 +40,7 @@ test.describe('WordPress iframe lightbox – real clicks', () => {
     })
     await expect(page.locator('#sidhu-parent-lightbox-host')).toHaveCount(1)
 
-    const closeBox = await page.locator('#sidhu-parent-lightbox-host').first().evaluate((el) => {
-      const btn = el.shadowRoot?.querySelector('.close')
-      if (!(btn instanceof HTMLElement)) return null
-      const rect = btn.getBoundingClientRect()
-      return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
-    })
-
-    expect(closeBox).toBeTruthy()
-    if (closeBox) {
-      await page.mouse.click(closeBox.x, closeBox.y)
-    }
+    await clickParentLightboxClose(page)
 
     await page.waitForTimeout(500)
     await expect(page.locator('#sidhu-parent-lightbox-host')).toHaveCount(0)
