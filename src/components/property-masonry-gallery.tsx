@@ -145,7 +145,16 @@ export const PropertyMasonryGallery = ({
       </section>
 
       {activeImage && activeIndex !== null ? (
-        <PropertyLightbox isOpen={activeIndex !== null} onClose={closeLightbox}>
+        <PropertyLightbox
+          isOpen={activeIndex !== null}
+          onClose={closeLightbox}
+          iframeImages={images.map((image) => ({
+            url: image.url,
+            title: image.title,
+          }))}
+          iframeActiveIndex={activeIndex}
+          iframePropertyTitle={propertyTitle}
+        >
           <button
             type="button"
             aria-label="Galerie schließen"

@@ -1,6 +1,19 @@
 export const IFRAME_RESIZE_MESSAGE_TYPE = 'sidhu-iframe-resize'
 export const IFRAME_NAVIGATE_MESSAGE_TYPE = 'sidhu-iframe-navigate'
 export const IFRAME_LIGHTBOX_MESSAGE_TYPE = 'sidhu-iframe-lightbox'
+export const IFRAME_LIGHTBOX_CLOSE_MESSAGE_TYPE = 'sidhu-iframe-lightbox-close'
+
+export type IframeLightboxImage = {
+  url: string
+  title?: string
+}
+
+export type IframeLightboxPayload = {
+  isOpen: boolean
+  images?: IframeLightboxImage[]
+  activeIndex?: number
+  propertyTitle?: string
+}
 
 export const IFRAME_PARENT_ORIGINS = [
   'https://sidhu-finanzen.de',
@@ -115,14 +128,36 @@ export const postIframeNavigation = (pathname: string): void => {
 }
 
 /**
+ * Returns whether the app is running inside an allowed WordPress iframe embed.
+ */
+export const isIframeEmbedded = (): boolean => {
+  if (typeof window === 'undefined' || window.self === window.top) {
+    return false
+  }
+
+  if (typeof document === 'undefined' || document.referrer === '') {
+    return true
+  }
+
+  try {
+    const referrerOrigin = new URL(document.referrer).origin
+    return IFRAME_PARENT_ORIGINS.includes(
+      referrerOrigin as (typeof IFRAME_PARENT_ORIGINS)[number]
+    )
+  } catch {
+    return true
+  }
+}
+
+/**
  * Notifies the WordPress parent when a fullscreen lightbox opens or closes.
  *
- * @param isOpen Whether the lightbox is currently visible.
+ * @param payload Serializable lightbox state for the parent overlay.
  */
-export const postIframeLightboxState = (isOpen: boolean): void => {
+export const postIframeLightboxState = (payload: IframeLightboxPayload): void => {
   postToParentFrames({
     type: IFRAME_LIGHTBOX_MESSAGE_TYPE,
-    isOpen,
+    ...payload,
   })
 }
 

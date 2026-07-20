@@ -116,3 +116,26 @@
     createAnimator: createAnimator,
   }
 })(window)
+
+;(function (global) {
+  var script = document.currentScript
+  var appOrigin = 'https://sidhu-finanzen.vercel.app'
+
+  if (script && script.src) {
+    try {
+      appOrigin = new URL(script.src).origin
+    } catch (error) {
+      appOrigin = 'https://sidhu-finanzen.vercel.app'
+    }
+  }
+
+  if (global.SidhuIframeLightbox && global.SidhuIframeLightbox.autoInit) {
+    global.SidhuIframeLightbox.autoInit(appOrigin)
+    return
+  }
+
+  var lightboxScript = document.createElement('script')
+  lightboxScript.src = appOrigin + '/wordpress/sidhu-iframe-lightbox.js'
+  lightboxScript.async = false
+  document.head.appendChild(lightboxScript)
+})(window)

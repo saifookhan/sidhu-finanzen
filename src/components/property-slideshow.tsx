@@ -251,7 +251,16 @@ export const PropertySlideshow = ({
       </section>
 
       {isLightboxOpen ? (
-        <PropertyLightbox isOpen={isLightboxOpen} onClose={closeLightbox}>
+        <PropertyLightbox
+          isOpen={isLightboxOpen}
+          onClose={closeLightbox}
+          iframeImages={images.map((image) => ({
+            url: image.url,
+            title: image.title,
+          }))}
+          iframeActiveIndex={activeIndex}
+          iframePropertyTitle={propertyTitle}
+        >
           <button
             type='button'
             aria-label='Galerie schließen'
