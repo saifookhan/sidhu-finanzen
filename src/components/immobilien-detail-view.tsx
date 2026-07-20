@@ -100,7 +100,7 @@ export const ImmobilienDetailView = async ({
       </div>
 
       <div className='px-4 py-8'>
-        <div className='mx-auto flex max-w-7xl flex-col gap-8 lg:flex-row '>
+        <div className='mx-auto flex max-w-7xl flex-col gap-8 lg:flex-row lg:items-start'>
           <div className='min-w-0 flex-1 space-y-6'>
             <article className='overflow-hidden rounded-2xl border border-black/10 bg-white shadow-[0_10px_36px_rgba(0,0,0,0.1)]'>
               <div className='space-y-6 p-6 md:p-8'>
@@ -288,7 +288,7 @@ export const ImmobilienDetailView = async ({
           </article>
           </div>
 
-          <aside className='w-full shrink-0 lg:w-80 xl:w-96'>
+          <aside className='w-full shrink-0 lg:w-80 xl:w-96 lg:self-stretch'>
             <div className='lg:sticky lg:top-8'>
               <div className='flex flex-col gap-6 rounded-2xl border border-black/10 bg-white p-6 shadow-lg md:p-8'>
                 <h2 className='text-2xl font-semibold text-[#18181b]'>

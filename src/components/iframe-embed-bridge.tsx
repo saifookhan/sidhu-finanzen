@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 
 import {
@@ -14,6 +14,8 @@ import {
  */
 export const IframeEmbedBridge = () => {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const query = searchParams.toString()
 
   useEffect(() => {
     document.documentElement.classList.add('embed-root')
@@ -87,7 +89,7 @@ export const IframeEmbedBridge = () => {
       window.removeEventListener('load', scheduleHeightReport, true)
       document.removeEventListener('load', handleMediaLoad, true)
     }
-  }, [pathname])
+  }, [pathname, query])
 
   return null
 }

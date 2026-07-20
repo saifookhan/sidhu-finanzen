@@ -44,6 +44,10 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.address,
     maxWidth: 260,
   },
+  logoColumn: {
+    width: 160,
+    alignItems: 'flex-end',
+  },
   logo: {
     height: 40,
     width: 118,
@@ -156,7 +160,9 @@ export const DocumentLetterTemplate = ({
     <Page size='A4' style={styles.page}>
       <View style={styles.headerRow}>
         <Text style={styles.addressLine}>{SIDHU_COMPANY.addressLine}</Text>
-        <Image src={logoSrc} style={styles.logo} />
+        <View style={styles.logoColumn}>
+          <Image src={logoSrc} style={styles.logo} />
+        </View>
       </View>
 
       <View style={styles.introRow}>

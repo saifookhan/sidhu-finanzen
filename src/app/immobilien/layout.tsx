@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 import { IframeEmbedBridge } from '@/components/iframe-embed-bridge'
 
 type ImmobilienLayoutProps = {
@@ -12,7 +14,9 @@ type ImmobilienLayoutProps = {
 const ImmobilienLayout = ({ children }: ImmobilienLayoutProps) => {
   return (
     <>
-      <IframeEmbedBridge />
+      <Suspense fallback={null}>
+        <IframeEmbedBridge />
+      </Suspense>
       {children}
     </>
   )
