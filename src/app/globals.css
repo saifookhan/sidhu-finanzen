@@ -64,8 +64,25 @@ html.embed-root body {
   min-height: 0 !important;
 }
 
+html.embed-root {
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
 html.embed-root body {
   display: block !important;
+  overflow-x: hidden;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html.embed-root::-webkit-scrollbar,
+html.embed-root body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 a {

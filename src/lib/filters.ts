@@ -5,20 +5,124 @@ import { isListingSegment } from '@/lib/listing'
 import type { ListingSegment } from '@/lib/listing'
 import type { PropertyFilters } from '@/types/property'
 
+/**
+ * Normalizes empty query values to undefined before Zod parsing.
+ *
+ * @param value Raw query value.
+ */
+const emptyToUndefined = (value: unknown): unknown => {
+  if (typeof value === 'string' && value.trim().length === 0) {
+    return undefined
+  }
+
+  return value
+}
+
+const optionalStringParam = z.preprocess(
+  emptyToUndefined,
+  z.string().trim().min(1).optional()
+)
+
+const optionalNumberParam = z.preprocess(
+  emptyToUndefined,
+  z.coerce.number().nonnegative().optional()
+)
+
 const filterSchema = z.object({
-  objectType: z.string().trim().min(1).optional(),
-  location: z.string().trim().min(1).optional(),
-  minPrice: z.coerce.number().nonnegative().optional(),
-  maxPrice: z.coerce.number().nonnegative().optional(),
-  minArea: z.coerce.number().nonnegative().optional(),
-  areaType: z.string().trim().min(1).optional(),
-  minRooms: z.coerce.number().nonnegative().optional(),
-  zipCode: z
-    .string()
-    .trim()
-    .regex(/^\d{5}$/, 'zipCode must be a 5-digit German postal code')
-    .optional(),
+  objectType: optionalStringParam,
+  location: optionalStringParam,
+  minPrice: optionalNumberParam,
+  maxPrice: optionalNumberParam,
+  minArea: optionalNumberParam,
+  areaType: optionalStringParam,
+  minRooms: optionalNumberParam,
+  zipCode: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .trim()
+      .regex(/^\d{5}$/, 'zipCode must be a 5-digit German postal code')
+      .optional()
+  ),
 })
+
+type ParsedFilterValues = z.infer<typeof filterSchema>
+
+/**
+ * Flattens Next.js search params into one string map for Zod parsing.
+ *
+ * @param searchParams Raw URL search params from Next.js pages/routes.
+ */
+const flattenSearchParams = (
+  searchParams: Record<string, string | string[] | undefined>
+): Record<string, string> => {
+  const flatInput: Record<string, string> = {}
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      const firstValue = value.find(
+        (entry): entry is string => typeof entry === 'string' && entry.trim().length > 0
+      )
+
+      if (firstValue) {
+        flatInput[key] = firstValue
+      }
+    } else if (typeof value === 'string') {
+      flatInput[key] = value
+    }
+  }
+
+  return flatInput
+}
+
+/**
+ * Maps validated filter values into the shared PropertyFilters shape.
+ *
+ * @param listingSegment Listing segment from the route.
+ * @param data Parsed filter values.
+ */
+const buildPropertyFilters = (
+  listingSegment: ListingSegment,
+  data: ParsedFilterValues
+): PropertyFilters => {
+  const areaType =
+    data.areaType && isPropertyAreaType(data.areaType) ? data.areaType : undefined
+
+  return {
+    listingSegment,
+    objectType: data.objectType,
+    location: data.location,
+    minPrice: data.minPrice,
+    maxPrice: data.maxPrice,
+    minArea: data.minArea,
+    areaType,
+    minRooms: data.minRooms,
+    zipCode: data.zipCode,
+  }
+}
+
+/**
+ * Builds URL search params from a submitted filter form.
+ *
+ * @param formData Submitted filter form values.
+ */
+export const buildFilterSearchParams = (formData: FormData): URLSearchParams => {
+  const minArea = formData.get('minArea')?.toString().trim()
+  const params = new URLSearchParams()
+
+  formData.forEach((value, key) => {
+    if (key === 'areaType' && !minArea) {
+      return
+    }
+
+    const normalized = value.toString().trim()
+    if (normalized) {
+      params.set(key, normalized)
+    }
+  })
+
+  return params
+}
 
 /**
  * Parses search params into safe filter values for one listing segment.
@@ -30,35 +134,21 @@ export const parseFilters = (
   listingSegment: ListingSegment,
   searchParams: Record<string, string | string[] | undefined>
 ): PropertyFilters => {
-  const flatInput: Record<string, string> = {}
-
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (typeof value === 'string') {
-      flatInput[key] = value
-    }
-  }
-
+  const flatInput = flattenSearchParams(searchParams)
   const parsed = filterSchema.safeParse(flatInput)
-  if (!parsed.success) {
-    return { listingSegment }
+
+  if (parsed.success) {
+    return buildPropertyFilters(listingSegment, parsed.data)
   }
 
-  const areaType =
-    parsed.data.areaType && isPropertyAreaType(parsed.data.areaType)
-      ? parsed.data.areaType
-      : undefined
+  const { zipCode: _zipCode, ...rest } = flatInput
+  const retry = filterSchema.safeParse(rest)
 
-  return {
-    listingSegment,
-    objectType: parsed.data.objectType,
-    location: parsed.data.location,
-    minPrice: parsed.data.minPrice,
-    maxPrice: parsed.data.maxPrice,
-    minArea: parsed.data.minArea,
-    areaType,
-    minRooms: parsed.data.minRooms,
-    zipCode: parsed.data.zipCode,
+  if (retry.success) {
+    return buildPropertyFilters(listingSegment, retry.data)
   }
+
+  return { listingSegment }
 }
 
 /**

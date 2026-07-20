@@ -288,7 +288,7 @@ export const ImmobilienDetailView = async ({
           </article>
           </div>
 
-          <aside className='w-full shrink-0 lg:w-80 xl:w-96'>
+          <aside className='w-full shrink-0 lg:w-80 xl:w-96 lg:self-stretch'>
             <div className='lg:sticky lg:top-8'>
               <div className='flex flex-col gap-6 rounded-2xl border border-black/10 bg-white p-6 shadow-lg md:p-8'>
                 <h2 className='text-2xl font-semibold text-[#18181b]'>
