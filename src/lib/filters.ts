@@ -36,6 +36,7 @@ const filterSchema = z.object({
   minArea: optionalNumberParam,
   areaType: optionalStringParam,
   minRooms: optionalNumberParam,
+  maxRooms: optionalNumberParam,
   zipCode: z.preprocess(
     emptyToUndefined,
     z
@@ -97,6 +98,7 @@ const buildPropertyFilters = (
     minArea: data.minArea,
     areaType,
     minRooms: data.minRooms,
+    maxRooms: data.maxRooms,
     zipCode: data.zipCode,
   }
 }

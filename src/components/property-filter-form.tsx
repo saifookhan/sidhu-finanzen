@@ -135,19 +135,35 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
           <legend className='text-xs font-medium uppercase tracking-[0.12em] text-sidhu-meta'>
             Anzahl Zimmer
           </legend>
-          <label>
-            <span className='sr-only'>Anzahl Zimmer</span>
-            <input
-              className={inputClassName}
-              type='number'
-              name='minRooms'
-              placeholder='Von'
-              min={0}
-              max={1000}
-              step={0.5}
-              defaultValue={filters.minRooms}
-            />
-          </label>
+          <div className='flex items-center gap-2'>
+            <label className='flex-1'>
+              <span className='sr-only'>Zimmer von</span>
+              <input
+                className={inputClassName}
+                type='number'
+                name='minRooms'
+                placeholder='Von'
+                min={0}
+                max={1000}
+                step={1}
+                defaultValue={filters.minRooms}
+              />
+            </label>
+            <span className='text-sm text-zinc-600'>–</span>
+            <label className='flex-1'>
+              <span className='sr-only'>Zimmer bis</span>
+              <input
+                className={inputClassName}
+                type='number'
+                name='maxRooms'
+                placeholder='Bis'
+                min={0}
+                max={1000}
+                step={1}
+                defaultValue={filters.maxRooms}
+              />
+            </label>
+          </div>
         </fieldset>
 
         <fieldset className='space-y-2'>

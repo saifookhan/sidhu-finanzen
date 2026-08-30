@@ -536,6 +536,13 @@ const buildEstateFilters = (
     ]
   }
 
+  if (typeof filters.maxRooms === 'number') {
+    apiFilters.anzahl_zimmer = [
+      ...(apiFilters.anzahl_zimmer ?? []),
+      { op: '<=', val: filters.maxRooms },
+    ]
+  }
+
   if (typeof filters.minArea === 'number') {
     const areaField = filters.areaType ?? 'wohnflaeche'
     apiFilters[areaField] = [
