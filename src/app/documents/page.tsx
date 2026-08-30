@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Collapse } from 'antd'
 
 import {
   DocumentDescription,
@@ -10,11 +10,18 @@ import {
 import { DOCUMENT_TEMPLATES } from '@/lib/document-templates'
 
 export default function FinanceServices() {
-  const [active, setActive] = useState<string | null>(null)
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+
+  const toggleItem = (slug: string) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [slug]: !prev[slug],
+    }))
+  }
 
   return (
     <section
-      className='relative min-h-[700px] bg-cover bg-center py-20'
+      className='relative min-h-screen w-full bg-cover bg-center bg-no-repeat py-20'
       style={{
         backgroundImage:
           "url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
@@ -32,54 +39,52 @@ export default function FinanceServices() {
           </p>
         </div>
 
-        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+        <div className='columns-1 gap-6 space-y-6 md:columns-2'>
           {DOCUMENT_TEMPLATES.map((template) => {
-            const isOpen = active === template.title
+            const isOpen = !!openItems[template.slug]
 
             return (
-              <div
-                key={template.slug}
-                className='overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl'
-              >
-                <button
-                  onClick={() => setActive(isOpen ? null : template.title)}
-                  className='flex w-full items-center justify-between gap-4 p-6 text-left'
-                >
-                  <h2 className='text-lg font-medium text-gray-900'>
-                    {template.title}
-                  </h2>
+              <div key={template.slug} className='break-inside-avoid'>
+                <Collapse
+                  bordered={false}
+                  activeKey={isOpen ? [template.slug] : []}
+                  onChange={() => toggleItem(template.slug)}
+                  className='bg-white shadow-sm'
+                  style={{
+                    background: 'white',
+                    borderRadius: '8px',
+                  }}
+                  items={[
+                    {
+                      key: template.slug,
+                      label: (
+                        <div className='flex w-full items-center justify-between gap-4 py-2 text-left'>
+                          <h2 className='text-lg font-medium text-gray-900'>
+                            {template.title}
+                          </h2>
+                        </div>
+                      ),
+                      children: (
+                        /* Scrollbar disabled on mobile, active only on medium+ screens */
+                        <div className='max-h-none overflow-visible space-y-5 px-1 pb-4 md:max-h-[45vh] md:overflow-y-auto md:pr-3'>
+                          <div className='leading-6'>
+                            <DocumentDescription template={template} />
+                          </div>
 
-                  <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-gray-700 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-
-                <div
-                  className={`grid transition-all duration-500 ${
-                    isOpen
-                      ? 'grid-rows-[1fr] opacity-100'
-                      : 'grid-rows-[0fr] opacity-0'
-                  }`}
-                >
-                  <div className='overflow-hidden'>
-                    <div className='px-6 pb-6'>
-                      <div className='mb-5 leading-6'>
-                        <DocumentDescription template={template} />
-                      </div>
-
-                      <a
-                        href={getDocumentPdfUrl(template.slug)}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='inline-flex rounded-lg bg-green-500 px-6 py-3 text-sm font-medium text-white transition hover:bg-green-600'
-                      >
-                        Als PDF anzeigen
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                          <a
+                            href={getDocumentPdfUrl(template.slug)}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='inline-flex rounded-lg px-6 py-3 text-sm font-medium text-white transition hover:opacity-90'
+                            style={{ backgroundColor: '#00C950' }}
+                          >
+                            Als PDF anzeigen
+                          </a>
+                        </div>
+                      ),
+                    },
+                  ]}
+                />
               </div>
             )
           })}
