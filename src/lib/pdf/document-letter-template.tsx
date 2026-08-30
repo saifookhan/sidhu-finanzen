@@ -34,15 +34,17 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
     marginBottom: 24,
   },
   addressLine: {
+    flex: 1,
     fontSize: 8,
     color: colors.address,
     paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.address,
-    maxWidth: 260,
+    marginRight: 60,
   },
   logoColumn: {
     width: 160,
