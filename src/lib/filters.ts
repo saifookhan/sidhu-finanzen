@@ -34,6 +34,7 @@ const filterSchema = z.object({
   minPrice: optionalNumberParam,
   maxPrice: optionalNumberParam,
   minArea: optionalNumberParam,
+  maxArea: optionalNumberParam,
   areaType: optionalStringParam,
   minRooms: optionalNumberParam,
   maxRooms: optionalNumberParam,
