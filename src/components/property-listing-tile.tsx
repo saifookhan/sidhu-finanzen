@@ -2,11 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { PropertyListingTileImages } from '@/components/property-listing-tile-images'
-import {
-  buildListingDetailPath,
-  LISTING_PRICE_LABELS,
-  LISTING_TYPE_BADGE_LABELS,
-} from '@/lib/listing'
+import { buildListingDetailPath, LISTING_PRICE_LABELS } from '@/lib/listing'
 import {
   formatListingArea,
   formatListingPrice,
@@ -161,7 +157,7 @@ const buildListingMetaItems = (property: Property): ListingMetaItem[] => {
     items.push({
       key: 'rooms',
       tooltip: 'Zimmer',
-      value: String(property.rooms),
+      value: `${property.rooms} Zimmer`,
       icon: <RoomIcon />,
     })
   }
@@ -170,7 +166,7 @@ const buildListingMetaItems = (property: Property): ListingMetaItem[] => {
     items.push({
       key: 'bathrooms',
       tooltip: 'Badezimmer',
-      value: String(property.bathrooms),
+      value: `${property.bathrooms} ${property.bathrooms === 1 ? 'Bad' : 'Bäder'}`,
       icon: <BathroomIcon />,
     })
   }
@@ -199,90 +195,76 @@ export const PropertyListingTile = ({ property, className }: PropertyListingTile
   const locationLabel = resolvePropertyLocationLabel(property.city)
   const metaItems = buildListingMetaItems(property)
   const availabilityLabel = resolveAvailabilityBadgeLabel(property)
-  const typeLabel = LISTING_TYPE_BADGE_LABELS[property.listingSegment]
   const priceLabel = LISTING_PRICE_LABELS[property.listingSegment]
+  const accessibleLabel = property.title.trim() || 'Immobilie ansehen'
 
   return (
     <article
       className={cn(
-        'group flex h-full flex-col overflow-hidden rounded-xl border border-sidhu-border bg-white',
-        'shadow-[0_8px_24px_rgba(6,22,25,0.08)] transition hover:shadow-[0_12px_32px_rgba(6,22,25,0.12)]',
+        'group flex h-full flex-col overflow-hidden rounded-[14px] border border-sidhu-border bg-white',
+        'shadow-[0_1px_2px_rgba(6,22,25,0.06)] transition-shadow duration-200 ease-out',
+        'hover:shadow-[0_14px_34px_rgba(6,22,25,0.14)]',
         className
       )}
     >
       <div className='relative overflow-hidden'>
-        <div className='absolute left-3 top-3 z-20 flex flex-wrap gap-2'>
-          <span
-            className={cn(
-              'rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
-              'bg-sidhu-accent text-sidhu-dark'
-            )}
-          >
-            {availabilityLabel}
-          </span>
-          <span
-            className={cn(
-              'rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wide',
-              property.listingSegment === 'kaufen'
-                ? 'bg-sidhu-dark text-white'
-                : 'bg-sidhu-sage text-sidhu-dark'
-            )}
-          >
-            {typeLabel}
-          </span>
-        </div>
+        <span
+          className={cn(
+            'absolute left-3.5 top-3.5 z-20 inline-flex h-[26px] items-center gap-1.5 rounded-full',
+            'bg-white/95 px-2.5 text-[11px] font-bold uppercase tracking-[0.04em] text-sidhu-dark'
+          )}
+        >
+          <span className='h-[7px] w-[7px] rounded-full bg-sidhu-accent' />
+          {availabilityLabel}
+        </span>
 
         <PropertyListingTileImages
           images={property.images}
           fallbackImageUrl={property.imageUrl}
-          propertyTitle={property.title}
+          propertyTitle={accessibleLabel}
           detailPath={detailPath}
         />
       </div>
 
-      <div className='flex flex-1 flex-col bg-white p-4'>
-        <div className='space-y-3'>
-          <h3 className='line-clamp-2 min-h-[3.25rem] text-lg font-bold leading-snug text-sidhu-title'>
-            <Link
-              href={detailPath}
-              aria-label={property.title}
-              className='transition hover:text-sidhu-accent'
-            >
-              {property.title}
-            </Link>
-          </h3>
+      <div className='relative flex flex-1 flex-col gap-3.5 bg-white p-5'>
+        <Link
+          href={detailPath}
+          aria-label={accessibleLabel}
+          className='absolute inset-0 z-0'
+        />
 
-          {locationLabel ? (
-            <div className='flex items-center gap-2 text-sm text-sidhu-meta'>
-              <LocationIcon className='text-sidhu-sage-dark' />
-              <span>{locationLabel}</span>
-            </div>
-          ) : null}
-
-          {metaItems.length > 0 ? (
-            <div className='flex flex-wrap gap-x-4 gap-y-2'>
-              {metaItems.map((item) => {
-                return (
-                  <span
-                    key={item.key}
-                    title={item.tooltip}
-                    className='inline-flex items-center gap-1.5 text-sm text-sidhu-meta'
-                  >
-                    <span className='text-sidhu-sage-dark'>{item.icon}</span>
-                    <span className='font-medium text-sidhu-title'>{item.value}</span>
-                  </span>
-                )
-              })}
-            </div>
-          ) : null}
-        </div>
-
-        <div className='mt-auto border-t border-sidhu-border pt-3 text-sm text-sidhu-meta'>
-          <span>{priceLabel}</span>{' '}
-          <span className='text-base font-bold text-sidhu-title'>
+        <div>
+          <div className='text-[11px] font-semibold uppercase tracking-[0.12em] text-sidhu-meta'>
+            {priceLabel}
+          </div>
+          <div className='text-[26px] font-extrabold leading-[1.2] tracking-[-0.02em] text-sidhu-title'>
             {formatListingPrice(property)}
-          </span>
+          </div>
         </div>
+
+        <h3 className='line-clamp-2 text-base font-bold leading-snug text-sidhu-title transition group-hover:text-sidhu-accent'>
+          {property.title}
+        </h3>
+
+        {locationLabel ? (
+          <div className='flex items-center gap-2 text-sm text-sidhu-meta'>
+            <LocationIcon className='text-sidhu-sage-dark' />
+            <span>{locationLabel}</span>
+          </div>
+        ) : null}
+
+        {metaItems.length > 0 ? (
+          <div className='mt-auto grid grid-cols-3 gap-2 border-t border-sidhu-border pt-3.5'>
+            {metaItems.map((item) => {
+              return (
+                <div key={item.key} title={item.tooltip} className='flex flex-col gap-1'>
+                  <span className='text-sidhu-sage-dark'>{item.icon}</span>
+                  <span className='text-sm font-bold text-sidhu-title'>{item.value}</span>
+                </div>
+              )
+            })}
+          </div>
+        ) : null}
       </div>
     </article>
   )

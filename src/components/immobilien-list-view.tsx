@@ -34,9 +34,11 @@ export const ImmobilienListView = ({
     <main className='bg-background text-foreground'>
       <ListingHero listingSegment={listingSegment} />
 
-      <div className='px-4 py-8'>
+      <div className='px-4 pb-8'>
         <div className='mx-auto max-w-6xl space-y-6'>
-          <PropertyFilterForm filters={filters} />
+          <div className='relative z-30 -mt-8'>
+            <PropertyFilterForm filters={filters} resultCount={properties.length} />
+          </div>
 
           {hasLoadError ? (
             <p className='rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900'>
