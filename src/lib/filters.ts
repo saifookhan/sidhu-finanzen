@@ -106,30 +106,6 @@ const buildPropertyFilters = (
 }
 
 /**
- * Builds URL search params from a submitted filter form.
- *
- * @param formData Submitted filter form values.
- */
-export const buildFilterSearchParams = (formData: FormData): URLSearchParams => {
-  const minArea = formData.get('minArea')?.toString().trim()
-  const maxArea = formData.get('maxArea')?.toString().trim()
-  const params = new URLSearchParams()
-
-  formData.forEach((value, key) => {
-    if (key === 'areaType' && !minArea && !maxArea) {
-      return
-    }
-
-    const normalized = value.toString().trim()
-    if (normalized) {
-      params.set(key, normalized)
-    }
-  })
-
-  return params
-}
-
-/**
  * Parses search params into safe filter values for one listing segment.
  *
  * @param listingSegment Listing segment from the route.

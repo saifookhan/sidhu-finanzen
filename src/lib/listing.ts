@@ -12,6 +12,11 @@ export const LISTING_SEGMENT_HEADINGS: Record<ListingSegment, string> = {
   mieten: 'Immobilie mieten',
 }
 
+export const LISTING_SEGMENT_SUBHEADINGS: Record<ListingSegment, string> = {
+  kaufen: 'Aktuelle Kaufangebote aus Höxter, Beverungen und Umgebung.',
+  mieten: 'Aktuelle Mietangebote aus Höxter, Beverungen und Umgebung.',
+}
+
 export const LISTING_PRICE_LABELS: Record<ListingSegment, string> = {
   kaufen: 'Kaufpreis',
   mieten: 'Kaltmiete',
