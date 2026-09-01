@@ -139,7 +139,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
                 placeholder='Von'
                 min={0}
                 max={1000}
-                step={1}
+                step={0.5}
                 defaultValue={filters.minRooms}
               />
             </label>
@@ -153,7 +153,7 @@ export const PropertyFilterForm = ({ filters }: PropertyFilterFormProps) => {
                 placeholder='Bis'
                 min={0}
                 max={1000}
-                step={1}
+                step={0.5}
                 defaultValue={filters.maxRooms}
               />
             </label>
