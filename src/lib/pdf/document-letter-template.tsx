@@ -36,6 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 24,
+    marginRight: 60,
   },
   addressLine: {
     flex: 1,
