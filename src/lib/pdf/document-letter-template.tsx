@@ -49,12 +49,13 @@ const styles = StyleSheet.create({
   },
   logoColumn: {
     width: 160,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   logo: {
-    height: 40,
-    width: 118,
+    width: 160,
+    height: 54,
     objectFit: 'contain',
+    marginLeft: 145,
   },
   introRow: {
     flexDirection: 'row',
