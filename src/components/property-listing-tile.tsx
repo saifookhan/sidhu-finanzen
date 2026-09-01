@@ -201,6 +201,7 @@ export const PropertyListingTile = ({ property, className }: PropertyListingTile
   const availabilityLabel = resolveAvailabilityBadgeLabel(property)
   const typeLabel = LISTING_TYPE_BADGE_LABELS[property.listingSegment]
   const priceLabel = LISTING_PRICE_LABELS[property.listingSegment]
+  const accessibleLabel = property.title.trim() || 'Immobilie ansehen'
 
   return (
     <article
@@ -235,21 +236,21 @@ export const PropertyListingTile = ({ property, className }: PropertyListingTile
         <PropertyListingTileImages
           images={property.images}
           fallbackImageUrl={property.imageUrl}
-          propertyTitle={property.title}
+          propertyTitle={accessibleLabel}
           detailPath={detailPath}
         />
       </div>
 
-      <div className='flex flex-1 flex-col bg-white p-4'>
+      <div className='relative flex flex-1 flex-col bg-white p-4'>
+        <Link
+          href={detailPath}
+          aria-label={accessibleLabel}
+          className='absolute inset-0 z-0'
+        />
+
         <div className='space-y-3'>
-          <h3 className='line-clamp-2 min-h-[3.25rem] text-lg font-bold leading-snug text-sidhu-title'>
-            <Link
-              href={detailPath}
-              aria-label={property.title}
-              className='transition hover:text-sidhu-accent'
-            >
-              {property.title}
-            </Link>
+          <h3 className='line-clamp-2 min-h-[3.25rem] text-lg font-bold leading-snug text-sidhu-title transition group-hover:text-sidhu-accent'>
+            {property.title}
           </h3>
 
           {locationLabel ? (
