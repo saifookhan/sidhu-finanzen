@@ -10,13 +10,11 @@ import {
 import { DOCUMENT_TEMPLATES } from '@/lib/document-templates'
 
 export default function FinanceServices() {
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+const [openItem, setOpenItem] = useState<string | null>(null)
 
-  const toggleItem = (slug: string) => {
-    setOpenItems(() => ({
-      [slug]: !openItems[slug],
-    }))
-  }
+const toggleItem = (slug: string) => {
+  setOpenItem((current) => (current === slug ? null : slug))
+}
 
   return (
     <section
@@ -40,13 +38,13 @@ export default function FinanceServices() {
 
         <div className='columns-1 gap-6 space-y-6 md:columns-2'>
           {DOCUMENT_TEMPLATES.map((template) => {
-            const isOpen = !!openItems[template.slug]
+            const isOpen = openItem === template.slug;
 
             return (
               <div key={template.slug} className='break-inside-avoid'>
                 <Collapse
                   bordered={false}
-                  activeKey={isOpen ? [template.slug] : []}
+                  activeKey={isOpen ? template.slug : ""}
                   onChange={() => toggleItem(template.slug)}
                   className='bg-white shadow-sm'
                   style={{
