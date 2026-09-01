@@ -536,11 +536,26 @@ const buildEstateFilters = (
     ]
   }
 
+  if (typeof filters.maxRooms === 'number') {
+    apiFilters.anzahl_zimmer = [
+      ...(apiFilters.anzahl_zimmer ?? []),
+      { op: '<=', val: filters.maxRooms },
+    ]
+  }
+
+  const areaField = filters.areaType ?? 'wohnflaeche'
+
   if (typeof filters.minArea === 'number') {
-    const areaField = filters.areaType ?? 'wohnflaeche'
     apiFilters[areaField] = [
       ...(apiFilters[areaField] ?? []),
       { op: '>=', val: filters.minArea },
+    ]
+  }
+
+  if (typeof filters.maxArea === 'number') {
+    apiFilters[areaField] = [
+      ...(apiFilters[areaField] ?? []),
+      { op: '<=', val: filters.maxArea },
     ]
   }
 

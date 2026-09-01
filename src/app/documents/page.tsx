@@ -8,9 +8,29 @@ import {
   getDocumentPdfUrl,
 } from '@/components/document-description'
 import { DOCUMENT_TEMPLATES } from '@/lib/document-templates'
+import { cn } from '@/lib/utils'
 
-export default function FinanceServices() {
-  const [active, setActive] = useState<string | null>(null)
+/**
+ * Toggles one service card without changing the open state of its neighbors.
+ *
+ * @param slug Document template slug used as the card key.
+ * @param previous Currently open cards keyed by slug.
+ */
+const toggleOpenItem = (
+  slug: string,
+  previous: Record<string, boolean>
+): Record<string, boolean> => {
+  return {
+    ...previous,
+    [slug]: !previous[slug],
+  }
+}
+
+/**
+ * Financing services page with independently expanding document cards.
+ */
+const FinanceServices = () => {
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
 
   return (
     <section
@@ -32,17 +52,22 @@ export default function FinanceServices() {
           </p>
         </div>
 
-        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+        <div className='grid grid-cols-1 items-start gap-6 md:grid-cols-2'>
           {DOCUMENT_TEMPLATES.map((template) => {
-            const isOpen = active === template.title
+            const isOpen = !!openItems[template.slug]
 
             return (
               <div
                 key={template.slug}
-                className='overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-xl'
+                className={cn(
+                  'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg',
+                  'transition-all duration-300 hover:-translate-y-2 hover:shadow-xl'
+                )}
               >
                 <button
-                  onClick={() => setActive(isOpen ? null : template.title)}
+                  onClick={() => {
+                    setOpenItems((previous) => toggleOpenItem(template.slug, previous))
+                  }}
                   className='flex w-full items-center justify-between gap-4 p-6 text-left'
                 >
                   <h2 className='text-lg font-medium text-gray-900'>
@@ -50,18 +75,20 @@ export default function FinanceServices() {
                   </h2>
 
                   <ChevronDown
-                    className={`h-5 w-5 shrink-0 text-gray-700 transition-transform duration-300 ${
-                      isOpen ? 'rotate-180' : ''
-                    }`}
+                    className={cn(
+                      'h-5 w-5 shrink-0 text-gray-700 transition-transform duration-300',
+                      isOpen && 'rotate-180'
+                    )}
                   />
                 </button>
 
                 <div
-                  className={`grid transition-all duration-500 ${
+                  className={cn(
+                    'grid transition-all duration-500',
                     isOpen
                       ? 'grid-rows-[1fr] opacity-100'
                       : 'grid-rows-[0fr] opacity-0'
-                  }`}
+                  )}
                 >
                   <div className='overflow-hidden'>
                     <div className='px-6 pb-6'>
@@ -88,3 +115,5 @@ export default function FinanceServices() {
     </section>
   )
 }
+
+export default FinanceServices

@@ -34,8 +34,10 @@ const filterSchema = z.object({
   minPrice: optionalNumberParam,
   maxPrice: optionalNumberParam,
   minArea: optionalNumberParam,
+  maxArea: optionalNumberParam,
   areaType: optionalStringParam,
   minRooms: optionalNumberParam,
+  maxRooms: optionalNumberParam,
   zipCode: z.preprocess(
     emptyToUndefined,
     z
@@ -95,8 +97,10 @@ const buildPropertyFilters = (
     minPrice: data.minPrice,
     maxPrice: data.maxPrice,
     minArea: data.minArea,
+    maxArea: data.maxArea,
     areaType,
     minRooms: data.minRooms,
+    maxRooms: data.maxRooms,
     zipCode: data.zipCode,
   }
 }
@@ -108,10 +112,11 @@ const buildPropertyFilters = (
  */
 export const buildFilterSearchParams = (formData: FormData): URLSearchParams => {
   const minArea = formData.get('minArea')?.toString().trim()
+  const maxArea = formData.get('maxArea')?.toString().trim()
   const params = new URLSearchParams()
 
   formData.forEach((value, key) => {
-    if (key === 'areaType' && !minArea) {
+    if (key === 'areaType' && !minArea && !maxArea) {
       return
     }
 

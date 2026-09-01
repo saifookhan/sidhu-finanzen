@@ -85,7 +85,9 @@ export type PropertyFilters = {
   minPrice?: number
   maxPrice?: number
   minArea?: number
+  maxArea?: number
   areaType?: PropertyAreaType
   minRooms?: number
+  maxRooms?: number
   zipCode?: string
 }
