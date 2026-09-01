@@ -44,15 +44,15 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.address,
-    marginRight: 60,
+    marginRight: 16,
   },
   logoColumn: {
     width: 160,
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
   },
   logo: {
-    height: 40,
-    width: 118,
+    width: 160,
+    height: 54,
     objectFit: 'contain',
   },
   introRow: {
