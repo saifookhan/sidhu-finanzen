@@ -42,6 +42,7 @@ type FilterChip = {
 type ZipEntry = { zip: string; city: string }
 
 const ROOM_OPTIONS = [1, 2, 3, 4, 5]
+const SEARCH_DEBOUNCE_MS = 500
 
 let zipCodesCache: ZipEntry[] | null = null
 let zipCodesPromise: Promise<ZipEntry[]> | null = null
@@ -93,6 +94,27 @@ const buildValues = (filters: PropertyFilters, maxBound: number): FilterFormValu
     areaType: filters.areaType ?? 'wohnflaeche',
     minRooms: filters.minRooms ?? 0,
   }
+}
+
+/**
+ * Builds the URL search params for one set of filter form values.
+ *
+ * @param values Filter form values to serialize.
+ * @param maxBound Upper price bound for the active listing segment.
+ */
+const buildSearchParams = (values: FilterFormValues, maxBound: number): URLSearchParams => {
+  const params = new URLSearchParams()
+
+  if (values.objectType) params.set('objectType', values.objectType)
+  if (values.zipCode) params.set('zipCode', values.zipCode)
+  if (values.minPrice > 0) params.set('minPrice', String(values.minPrice))
+  if (values.maxPrice < maxBound) params.set('maxPrice', String(values.maxPrice))
+  if (values.minArea) params.set('minArea', values.minArea)
+  if (values.maxArea) params.set('maxArea', values.maxArea)
+  if (values.minArea || values.maxArea) params.set('areaType', values.areaType)
+  if (values.minRooms > 0) params.set('minRooms', String(values.minRooms))
+
+  return params
 }
 
 const triggerLabelClassName =
@@ -301,32 +323,38 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
     })
   }
 
-  const navigateWith = (next: FilterFormValues) => {
-    const params = new URLSearchParams()
-
-    if (next.objectType) params.set('objectType', next.objectType)
-    if (next.zipCode) params.set('zipCode', next.zipCode)
-    if (next.minPrice > 0) params.set('minPrice', String(next.minPrice))
-    if (next.maxPrice < maxBound) params.set('maxPrice', String(next.maxPrice))
-    if (next.minArea) params.set('minArea', next.minArea)
-    if (next.maxArea) params.set('maxArea', next.maxArea)
-    if (next.minArea || next.maxArea) params.set('areaType', next.areaType)
-    if (next.minRooms > 0) params.set('minRooms', String(next.minRooms))
-
-    router.replace(params.toString() ? `${pathname}?${params}` : pathname, {
-      scroll: false,
-    })
+  const navigate = (next: FilterFormValues) => {
+    const query = buildSearchParams(next, maxBound).toString()
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
   }
 
+  const appliedQuery = useMemo(
+    () => buildSearchParams(buildValues(appliedFilters, maxBound), maxBound).toString(),
+    [appliedFilters, maxBound]
+  )
+
+  useEffect(() => {
+    const nextQuery = buildSearchParams(values, maxBound).toString()
+    if (nextQuery === appliedQuery) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [values, appliedQuery, maxBound, pathname, router])
+
   const handleSearch = () => {
-    navigateWith(values)
+    navigate(values)
     setOpenPopover(null)
   }
 
   const handleReset = () => {
     const next = buildValues({ listingSegment: filters.listingSegment }, maxBound)
     setValues(next)
-    navigateWith(next)
+    navigate(next)
     setOpenPopover(null)
   }
 
