@@ -164,7 +164,7 @@ export const DocumentLetterTemplate = ({
       <View style={styles.headerRow}>
         <Text style={styles.addressLine}>{SIDHU_COMPANY.addressLine}</Text>
         <View style={styles.logoColumn}>
-          <Image src={logoSrc} style={styles.logo} />
+          <Image src={logoSrc} />
         </View>
       </View>
 
