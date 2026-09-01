@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     marginBottom: 24,
-    marginRight: 60,
+    marginRight: 8,
   },
   addressLine: {
     flex: 1,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.address,
-    marginRight: 16,
+    marginRight: 80,
   },
   logoColumn: {
     width: 160,
