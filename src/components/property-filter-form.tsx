@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 
 import {
@@ -81,11 +81,16 @@ const formatEuro = (value: number): string => {
  *
  * @param filters Active filter values from URL.
  * @param maxBound Upper price bound for the active listing segment.
+ * @param existingCityLabel City label to preserve when the zip code is unchanged.
  */
-const buildValues = (filters: PropertyFilters, maxBound: number): FilterFormValues => {
+const buildValues = (
+  filters: PropertyFilters,
+  maxBound: number,
+  existingCityLabel = ''
+): FilterFormValues => {
   return {
     zipCode: filters.zipCode ?? '',
-    zipCityLabel: '',
+    zipCityLabel: existingCityLabel,
     objectType: filters.objectType ?? '',
     minPrice: filters.minPrice ?? 0,
     maxPrice: filters.maxPrice ?? maxBound,
@@ -178,6 +183,35 @@ const SearchIcon = () => {
 }
 
 /**
+ * Loading spinner shown while filter navigation is pending.
+ */
+const SpinnerIcon = () => {
+  return (
+    <svg
+      className='h-4 w-4 animate-spin text-white'
+      xmlns='http://www.w3.org/2000/svg'
+      fill='none'
+      viewBox='0 0 24 24'
+      aria-hidden='true'
+    >
+      <circle
+        className='opacity-25'
+        cx='12'
+        cy='12'
+        r='10'
+        stroke='currentColor'
+        strokeWidth='4'
+      />
+      <path
+        className='opacity-75'
+        fill='currentColor'
+        d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+      />
+    </svg>
+  )
+}
+
+/**
  * Floating popover-based filter bar for the kaufen/mieten listing pages.
  *
  * @param filters Active filter values from URL.
@@ -188,6 +222,7 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
   const pathname = usePathname()
   const rootRef = useRef<HTMLDivElement>(null)
 
+  const [isPending, startTransition] = useTransition()
   const maxBound = LISTING_PRICE_MAX[filters.listingSegment]
   const priceStep = LISTING_PRICE_STEP[filters.listingSegment]
 
@@ -198,7 +233,13 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
 
   if (filters !== appliedFilters) {
     setAppliedFilters(filters)
-    setValues(buildValues(filters, maxBound))
+    setValues((prev) =>
+      buildValues(
+        filters,
+        maxBound,
+        prev.zipCode === (filters.zipCode ?? '') ? prev.zipCityLabel : ''
+      )
+    )
   }
 
   useEffect(() => {
@@ -228,13 +269,22 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
         return
       }
 
-      setZipMatches(zipCodes.filter((entry) => entry.zip.startsWith(values.zipCode)).slice(0, 8))
+      setZipMatches(
+        zipCodes.filter((entry) => entry.zip.startsWith(values.zipCode)).slice(0, 8)
+      )
+
+      if (values.zipCode.length === 5 && !values.zipCityLabel) {
+        const exact = zipCodes.find((entry) => entry.zip === values.zipCode)
+        if (exact) {
+          setValues((prev) => ({ ...prev, zipCityLabel: exact.city }))
+        }
+      }
     })
 
     return () => {
       cancelled = true
     }
-  }, [values.zipCode])
+  }, [values.zipCode, values.zipCityLabel])
 
   const zipSuggestions =
     openPopover === 'zip' && values.zipCode.length > 0 ? zipMatches : []
@@ -272,17 +322,17 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
     return parts.length > 0 ? parts.join(' · ') : 'Beliebig'
   }, [values.minArea, values.maxArea, values.minRooms])
 
-  const zipLabel = values.zipCode ? values.zipCityLabel || values.zipCode : 'Alle Orte'
+  const zipLabel = values.zipCode
+    ? values.zipCityLabel
+      ? `${values.zipCode} ${values.zipCityLabel}`
+      : values.zipCode
+    : 'Alle Orte'
 
   const chips = useMemo<FilterChip[]>(() => {
     const items: FilterChip[] = []
 
     if (values.zipCode) {
-      items.push({
-        id: 'zip',
-        field: 'Ort',
-        label: values.zipCityLabel ? `${values.zipCode} ${values.zipCityLabel}` : values.zipCode,
-      })
+      items.push({ id: 'zip', field: 'Ort', label: zipLabel })
     }
     if (values.objectType) {
       items.push({ id: 'objectType', field: 'Typ', label: objectTypeLabel })
@@ -302,7 +352,7 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
     }
 
     return items
-  }, [values, objectTypeLabel, priceLabel, maxBound])
+  }, [values, zipLabel, objectTypeLabel, priceLabel, maxBound])
 
   const removeChip = (id: FilterChip['id']) => {
     setValues((prev) => {
@@ -325,7 +375,9 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
 
   const navigate = (next: FilterFormValues) => {
     const query = buildSearchParams(next, maxBound).toString()
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+    startTransition(() => {
+      router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
+    })
   }
 
   const appliedQuery = useMemo(
@@ -340,7 +392,9 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
     }
 
     const timeoutId = window.setTimeout(() => {
-      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+      startTransition(() => {
+        router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false })
+      })
     }, SEARCH_DEBOUNCE_MS)
 
     return () => window.clearTimeout(timeoutId)
@@ -662,10 +716,11 @@ export const PropertyFilterForm = ({ filters, resultCount }: PropertyFilterFormP
         <button
           type='button'
           onClick={handleSearch}
-          className='flex h-[52px] w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-sidhu-dark px-6 text-sm font-semibold text-white transition hover:bg-sidhu-title sm:w-auto'
+          disabled={isPending}
+          className='flex h-[52px] w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-sidhu-dark px-6 text-sm font-semibold text-white transition hover:bg-sidhu-title disabled:opacity-75 sm:w-auto'
         >
-          <SearchIcon />
-          Suchen
+          {isPending ? <SpinnerIcon /> : <SearchIcon />}
+          <span>{isPending ? 'Lädt...' : 'Suchen'}</span>
         </button>
       </div>
 

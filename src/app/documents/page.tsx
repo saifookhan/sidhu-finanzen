@@ -11,26 +11,20 @@ import { DOCUMENT_TEMPLATES } from '@/lib/document-templates'
 import { cn } from '@/lib/utils'
 
 /**
- * Toggles one service card without changing the open state of its neighbors.
+ * Toggles one document card open while closing any other open section.
  *
  * @param slug Document template slug used as the card key.
- * @param previous Currently open cards keyed by slug.
+ * @param current Currently open slug, or null when all are closed.
  */
-const toggleOpenItem = (
-  slug: string,
-  previous: Record<string, boolean>
-): Record<string, boolean> => {
-  return {
-    ...previous,
-    [slug]: !previous[slug],
-  }
+const toggleOpenItem = (slug: string, current: string | null): string | null => {
+  return current === slug ? null : slug
 }
 
 /**
- * Financing services page with independently expanding document cards.
+ * Financing services page with accordion-style document cards (one open at a time).
  */
 const FinanceServices = () => {
-  const [openItems, setOpenItems] = useState<Record<string, boolean>>({})
+  const [openItem, setOpenItem] = useState<string | null>(null)
 
   return (
     <section
@@ -54,7 +48,7 @@ const FinanceServices = () => {
 
         <div className='grid grid-cols-1 items-start gap-6 md:grid-cols-2'>
           {DOCUMENT_TEMPLATES.map((template) => {
-            const isOpen = !!openItems[template.slug]
+            const isOpen = openItem === template.slug
 
             return (
               <div
@@ -65,8 +59,9 @@ const FinanceServices = () => {
                 )}
               >
                 <button
+                  type='button'
                   onClick={() => {
-                    setOpenItems((previous) => toggleOpenItem(template.slug, previous))
+                    setOpenItem((current) => toggleOpenItem(template.slug, current))
                   }}
                   className='flex w-full items-center justify-between gap-4 p-6 text-left'
                 >
